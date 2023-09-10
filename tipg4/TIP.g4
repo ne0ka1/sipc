@@ -43,8 +43,9 @@ expr : expr '(' (expr (',' expr)*)? ')' 	#funAppExpr
      | '&' expr					#refExpr
      | expr op=(MUL | DIV) expr 		#multiplicativeExpr
      | expr op=(ADD | SUB) expr 		#additiveExpr
-     | expr op=GT expr 				#relationalExpr
+     | expr op=(GE | GT | LE | LT) expr #relationalExpr
      | expr op=(EQ | NE) expr 			#equalityExpr
+     | expr op=(BOOLEAN_TRUE | BOOLEAN_FALSE | OR | AND | NOT) expr #booleanExpr
      | IDENTIFIER				#varExpr
      | NUMBER					#numExpr
      | KINPUT					#inputExpr
@@ -52,6 +53,7 @@ expr : expr '(' (expr (',' expr)*)? ')' 	#funAppExpr
      | KNULL					#nullExpr
      | recordExpr				#recordRule
      | '(' expr ')'				#parenExpr
+     | expr op(
 ;
 
 recordExpr : '{' (fieldExpr (',' fieldExpr)*)? '}' ;
@@ -91,7 +93,10 @@ MUL : '*' ;
 DIV : '/' ;
 ADD : '+' ;
 SUB : '-' ;
+GE  : '>=';
 GT  : '>' ;
+LE  : '<=';
+LT  : '<' ;
 EQ  : '==' ;
 NE  : '!=' ;
 
@@ -109,6 +114,11 @@ KRETURN : 'return' ;
 KNULL   : 'null' ;
 KOUTPUT : 'output' ;
 KERROR  : 'error' ;
+BOOLEAN_TRUE : 'TRUE' ;
+BOOLEAN_FALSE : 'FALSE' ;
+AND : 'and' ;
+OR : 'or' ;
+NOT : 'not' ;
 
 // Keyword to declare functions as polymorphic
 KPOLY   : 'poly' ;
