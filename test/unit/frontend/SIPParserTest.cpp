@@ -262,6 +262,43 @@ TEST_CASE("SIP Parser: false array multiple comma", "[SIP Parser]") {
   REQUIRE_FALSE(ParserHelper::is_parsable(stream));
 }
 
+TEST_CASE("SIP Parser: mod equals", "[SIP Parser]") {
+  std::stringstream stream;
+  stream << R"(
+      operators() { var x, y ,z;
+                  x = 3;
+                  y = 3
+                  z = 1;
+                  z =% x;
+                  z =% y;         
+                  return z; }
+    )";
+
+  REQUIRE_FALSE(ParserHelper::is_parsable(stream));
+}
+
+TEST_CASE("SIP Parser: false array 3 'of'", "[SIP Parser]") {
+  std::stringstream stream;
+  stream << R"(
+      operators() { var a;
+                  a = [1 of 2 of 3];         
+                  return a; }
+    )";
+
+  REQUIRE_FALSE(ParserHelper::is_parsable(stream));
+}
+
+TEST_CASE("SIP Parser: relational extra greater than sign", "[SIP Parser]") {
+  std::stringstream stream;
+  stream << R"(
+      operators() { var a;
+                  a = 3 >>= 3;         
+                  return a; }
+    )";
+
+  REQUIRE_FALSE(ParserHelper::is_parsable(stream));
+}
+
 TEST_CASE("SIP Parser: missing symbol in ternary expression", "[SIP Parser]") {
   std::stringstream stream;
   stream << R"(
@@ -363,7 +400,8 @@ TEST_CASE("SIP Parser: not, and, or precedence", "[SIP Parser]") {
 TEST_CASE("SIP Parser: relationalExpr precedence", "[SIP Parser]") {
   std::stringstream stream;
   stream << R"(main() { return 3 <= 2 and 3 >= 1 == true; })"; 
-  std::string expected = "(expr (expr (expr (expr 3) <= (expr 2)) and (expr (expr 3) >= (expr 1))) == (expr true))";
+  // (3<=2) and (3>=1 == true)
+  std::string expected = "(expr (expr (expr 3) <= (expr 2)) and (expr (expr (expr 3) >= (expr 1)) == (expr true)))";
   std::string tree = ParserHelper::parsetree(stream);
   REQUIRE(tree.find(expected) != std::string::npos);
 }
@@ -443,7 +481,6 @@ TEST_CASE("SIP Parser: field select is higher in precedence than negation", "[SI
               )"; 
   std::string expected = "(expr (recordExpr { (fieldExpr f1 : (expr - 1)) }))";
   std::string tree = ParserHelper::parsetree(stream);
-  std::cout<<tree;
   REQUIRE(tree.find(expected) != std::string::npos);
 }
 
