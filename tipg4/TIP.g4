@@ -40,7 +40,9 @@ nameDeclaration : IDENTIFIER ;
 
 expr : expr '(' (expr (',' expr)*)? ')' 	#funAppExpr
      | expr'[' expr ']'              #arrayAccess
+     | expr '.' IDENTIFIER #accessExpr
      | '#'expr                     #lenOfArray
+     | '*' expr #deRefExpr
      | SUB NUMBER				#negNumber
      | SUB expr                        		#negExpr
      | NOT expr 				#notExpr
@@ -81,7 +83,7 @@ statement : blockStmt
 
 assignStmt : expr '=' expr ';' ;
 
-postfixStmt : expr op=(PLUSPLUS | MINUSMINUS) ';' ;
+postfixStmt : expr op = (PLUSPLUS | MINUSMINUS) ';' ;
 
 blockStmt : '{' (statement*) '}' ;
 
