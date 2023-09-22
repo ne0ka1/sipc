@@ -61,7 +61,7 @@ expr : expr '(' (expr (',' expr)*)? ')' 	#funAppExpr
      | KALLOC expr				#allocExpr
      | KNULL					#nullExpr
      | recordExpr				#recordRule
-     | ('[' (expr (',' expr)*)? ']' | '[' expr KOF expr ']') #array
+     | ('[' (expr (',' expr)*)? ']' | '[' expr KOF expr ']') #arrayExpr
      | expr '?' expr ':' expr   #ternaryExpr
      | '(' expr ')'				#parenExpr
 ;
