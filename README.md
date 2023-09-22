@@ -4,7 +4,7 @@
 
 tipc
 =========
-A compiler from TIP to llvm bitcode
+A compiler from TIP to llvm bitcode.
 
 
 ## TIP Language, Interpreter, and Analyzers
