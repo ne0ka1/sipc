@@ -62,7 +62,6 @@ expr : expr '(' (expr (',' expr)*)? ')' 	#funAppExpr
      | KNULL					#nullExpr
      | recordExpr				#recordRule
      | ('[' (expr (',' expr)*)? ']' | '[' expr KOF expr ']') #arrayExpr
-     | expr '?' expr ':' expr   #ternaryExpr
      | '(' expr ')'				#parenExpr
 ;
 
