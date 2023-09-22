@@ -406,6 +406,17 @@ TEST_CASE("SIP Parser: relationalExpr precedence", "[SIP Parser]") {
   REQUIRE(tree.find(expected) != std::string::npos);
 }
 
+
+// relational left to right precedence 
+TEST_CASE("SIP Parser: relationalExpr left to right precedence", "[SIP Parser]") {
+  std::stringstream stream;
+  stream << R"(main() { return 3 < 2 < 1 < 0; })"; 
+  // (((3 < 2) < 1) < 0)
+  std::string expected = "(expr (expr (expr (expr 3) < (expr 2)) < (expr 1)) < (expr 0))";
+  std::string tree = ParserHelper::parsetree(stream);
+  REQUIRE(tree.find(expected) != std::string::npos);
+}
+
 // negation precedence 
 TEST_CASE("SIP Parser: negation precedence and relationalExpr", "[SIP Parser]") {
   std::stringstream stream;
