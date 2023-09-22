@@ -36,39 +36,53 @@ nameDeclaration : IDENTIFIER ;
 // issues elsewhere in the compiler, e.g.,  introducing an assignable expr
 // weeding pass. 
 //
+
+
 expr : expr '(' (expr (',' expr)*)? ')' 	#funAppExpr
-     | expr '.' IDENTIFIER 			#accessExpr
-     | '*' expr 				#deRefExpr
+     | expr'[' expr ']'              #arrayAccess
+     | expr '.' IDENTIFIER #accessExpr
+     | '#'expr                     #lenOfArray
+     | '*' expr #deRefExpr
      | SUB NUMBER				#negNumber
+     | SUB expr                        		#negExpr
+     | NOT expr 				#notExpr
      | '&' expr					#refExpr
-     | expr op=(MUL | DIV) expr 		#multiplicativeExpr
+     | expr op=(MUL | DIV | MOD) expr 		#multiplicativeExpr
      | expr op=(ADD | SUB) expr 		#additiveExpr
-     | expr op=GT expr 				#relationalExpr
+     | expr op=(GE | GT | LE | LT) expr 	#relationalExpr
      | expr op=(EQ | NE) expr 			#equalityExpr
+     | expr AND expr 	       	#andExpr
+     | expr OR expr 			#orExpr
+     | expr '?' expr ':' expr   	#ternaryExpr
+     | (TRUE|FALSE)                #booleanExpr
      | IDENTIFIER				#varExpr
      | NUMBER					#numExpr
      | KINPUT					#inputExpr
      | KALLOC expr				#allocExpr
      | KNULL					#nullExpr
      | recordExpr				#recordRule
+     | ('[' (expr (',' expr)*)? ']' | '[' expr KOF expr ']') #arrayExpr
      | '(' expr ')'				#parenExpr
 ;
 
 recordExpr : '{' (fieldExpr (',' fieldExpr)*)? '}' ;
-
 fieldExpr : IDENTIFIER ':' expr ;
 
 ////////////////////// TIP Statements ////////////////////////// 
 
 statement : blockStmt
     | assignStmt
+    | postfixStmt
     | whileStmt
     | ifStmt
+    | forStmt
     | outputStmt
     | errorStmt
 ;
 
 assignStmt : expr '=' expr ';' ;
+
+postfixStmt : expr op = (PLUSPLUS | MINUSMINUS) ';' ;
 
 blockStmt : '{' (statement*) '}' ;
 
@@ -76,22 +90,29 @@ whileStmt : KWHILE '(' expr ')' statement ;
 
 ifStmt : KIF '(' expr ')' statement (KELSE statement)? ;
 
+forStmt: KFOR '(' expr ':' expr '..' expr (KBY expr)? ')' statement | KFOR '(' expr ':' expr ')' statement ;
+
 outputStmt : KOUTPUT expr ';'  ;
 
 errorStmt : KERROR expr ';'  ;
 
 returnStmt : KRETURN expr ';'  ;
 
-
-////////////////////// TIP Lexicon ////////////////////////// 
+////////////////////// TIP Lexicon //////////////////////////
 
 // By convention ANTLR4 lexical elements use all caps
 
 MUL : '*' ;
 DIV : '/' ;
+MOD : '%' ;
+PLUSPLUS : '++' ;
 ADD : '+' ;
+MINUSMINUS : '--' ;
 SUB : '-' ;
+GE  : '>=';
 GT  : '>' ;
+LE  : '<=';
+LT  : '<' ;
 EQ  : '==' ;
 NE  : '!=' ;
 
@@ -103,12 +124,20 @@ KALLOC  : 'alloc' ;
 KINPUT  : 'input' ;
 KWHILE  : 'while' ;
 KIF     : 'if' ;
+KFOR    : 'for' ;
 KELSE   : 'else' ;
 KVAR    : 'var' ;
 KRETURN : 'return' ;
 KNULL   : 'null' ;
 KOUTPUT : 'output' ;
 KERROR  : 'error' ;
+KOF : 'of' ;
+KBY : 'by' ;
+TRUE : 'true';
+FALSE : 'false';
+AND : 'and' ;
+OR : 'or' ;
+NOT : 'not' ;
 
 // Keyword to declare functions as polymorphic
 KPOLY   : 'poly' ;
