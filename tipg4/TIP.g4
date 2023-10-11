@@ -51,8 +51,7 @@ expr : expr '(' (expr (',' expr)*)? ')' 	#funAppExpr
      | expr op=(ADD | SUB) expr 		#additiveExpr
      | expr op=(GE | GT | LE | LT) expr 	#relationalExpr
      | expr op=(EQ | NE) expr 			#equalityExpr
-     | expr AND expr 	       	#andExpr
-     | expr OR expr 			#orExpr
+     | expr op=(AND | OR) expr 	       	#andorExpr
      | expr '?' expr ':' expr   	#ternaryExpr
      | (TRUE|FALSE)                #booleanExpr
      | IDENTIFIER				#varExpr
