@@ -74,7 +74,8 @@ statement : blockStmt
     | postfixStmt
     | whileStmt
     | ifStmt
-    | forStmt
+    | forRangeStmt
+    | forIteratorStmt
     | outputStmt
     | errorStmt
 ;
