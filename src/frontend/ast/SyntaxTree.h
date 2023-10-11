@@ -7,7 +7,7 @@
 // Forward declare the iterator.
 class Iterator;
 
-/*! \brief A convenient interface to the AST nodes.
+/*! \brief A convenient interface to the AST nodes..
  *
  * The SyntaxTree abstraction provides an interface for working with the AST.
  * It shelters clients from having to learn low-level details about the nodes.
