@@ -5,12 +5,12 @@
 /*! \brief Base class not not node
  */
 class ASTNotExpr : public ASTExpr {
-  std::shared_ptr<ASTExpr> PTR;
+  std::shared_ptr<ASTExpr> ARG;
 
 public:
   std::vector<std::shared_ptr<ASTNode>> getChildren() override;
-  ASTDeRefExpr(std::shared_ptr<ASTExpr> PTR) : PTR(PTR) {}
-  ASTExpr *getPtr() const { return PTR.get(); }
+  ASTDeRefExpr(std::shared_ptr<ASTExpr> ARG) : ARG(ARG) {}
+  ASTExpr *getArg() const { return ARG.get(); }
   void accept(ASTVisitor *visitor) override;
   llvm::Value *codegen() override;
 
