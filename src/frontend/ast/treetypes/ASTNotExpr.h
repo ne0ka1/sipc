@@ -6,14 +6,14 @@
  */
 class ASTNotExpr : public ASTExpr {
   std::string OP;
-  std::shared_ptr<ASTExpr> Expr;
+  std::shared_ptr<ASTExpr> EXPR;
 
 public:
   std::vector<std::shared_ptr<ASTNode>> getChildren() override;
-  ASTNotExpr(const std::string &OP, std::shared_ptr<ASTExpr> Expr)
-      : OP(OP), Expr(Expr) {}
-  std::string getOp() const { return Expr; }
-  ASTExpr *getExpr() const { return RIGHT.get(); }
+  ASTNotExpr(const std::string &OP, std::shared_ptr<ASTExpr> EXPR)
+      : OP(OP), EXPR(EXPR) {}
+  std::string getOp() const { return EXPR; }
+  ASTExpr *getEXPR() const { return RIGHT.get(); }
   void accept(ASTVisitor *visitor) override;
   llvm::Value *codegen() override;
 

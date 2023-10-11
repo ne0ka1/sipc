@@ -11,7 +11,8 @@ a.out
 
 # build directory
 build
-
+docs
+tipg4/.antlr
 # LLVM
 *.bc
 *.ll
