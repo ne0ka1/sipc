@@ -89,7 +89,9 @@ whileStmt : KWHILE '(' expr ')' statement ;
 
 ifStmt : KIF '(' expr ')' statement (KELSE statement)? ;
 
-forStmt: KFOR '(' expr ':' expr '..' expr (KBY expr)? ')' statement | KFOR '(' expr ':' expr ')' statement ;
+forRangeStmt: KFOR '(' expr ':' expr '..' expr (KBY expr)? ')' statement ;
+
+forIteratorStmt: KFOR '(' expr ':' expr ')' statement ;
 
 outputStmt : KOUTPUT expr ';'  ;
 
