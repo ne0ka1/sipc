@@ -88,4 +88,6 @@ public:
   virtual void endVisit(ASTBooleanExpr *element) {}
   virtual bool visit(ASTNegExpr *element) { return true; }
   virtual void endVisit(ASTNegExpr *element) {}
+  virtual bool visit(ASTArrayOfExpr *element) { return true; }
+  virtual void endVisit(ASTArrayOfExpr *element) {}
 };
