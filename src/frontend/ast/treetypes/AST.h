@@ -44,3 +44,4 @@
 #include "ASTArraySubscriptExpr.h"
 #include "ASTArrayExpr.h"
 #include "ASTNegExpr.h"
+#include "ASTArrayOfExpr.h"
