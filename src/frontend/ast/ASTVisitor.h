@@ -68,4 +68,24 @@ public:
   virtual void endVisit(ASTErrorStmt *element) {}
   virtual bool visit(ASTBlockStmt *element) { return true; }
   virtual void endVisit(ASTBlockStmt *element) {}
+  virtual bool visit(ASTForIteratorStmt *element) { return true; }
+  virtual void endVisit(ASTForIteratorStmt *element) {}
+  virtual bool visit(ASTForRangeStmt *element) { return true; }
+  virtual void endVisit(ASTForRangeStmt *element) {}
+  virtual bool visit(ASTNotExpr *element) { return true; }
+  virtual void endVisit(ASTNotExpr *element) {}
+  virtual bool visit(ASTPostfixStmt *element) { return true; }
+  virtual void endVisit(ASTPostfixStmt *element) {}
+  virtual bool visit(ASTTernaryExpr *element) { return true; }
+  virtual void endVisit(ASTTernaryExpr *element) {}
+  virtual bool visit(ASTArrayExpr *element) { return true; }
+  virtual void endVisit(ASTArrayExpr *element) {}
+  virtual bool visit(ASTArrayLengthExpr *element) { return true; }
+  virtual void endVisit(ASTArrayLengthExpr *element) {}
+  virtual bool visit(ASTArraySubscriptExpr *element) { return true; }
+  virtual void endVisit(ASTArraySubscriptExpr *element) {}
+  virtual bool visit(ASTBooleanExpr *element) { return true; }
+  virtual void endVisit(ASTBooleanExpr *element) {}
+  virtual bool visit(ASTNegExpr *element) { return true; }
+  virtual void endVisit(ASTNegExpr *element) {}
 };
