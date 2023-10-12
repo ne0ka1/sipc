@@ -1,21 +1,22 @@
 #include "ASTArrayExpr.h"
 #include "ASTVisitor.h"
 #include "ASTinternal.h"
-
 ASTArrayExpr::ASTArrayExpr(
-    std::vector<std::unique_ptr<ASTExpr>> ELEMENTS, bool implicit) {
-  this->implicit = implicit;
-
+  std::vector<std::unique_ptr<ASTExpr>> ELEMENTS) {
   for (auto &element : ELEMENTS) {
     std::shared_ptr<ASTExpr> e = std::move(ELEMENTS);
     this->ELEMENTS.push_back(std::move(e));
   }
 }
 
+std::vector<ASTExpr *> ASTArrayExpr::getElements() const {
+  return rawRefs(ELEMENTS);
+}
+
 
 void ASTArrayExpr::accept(ASTVisitor *visitor) {
   if (visitor->visit(this)) {
-    for (auto &elem : rawRefs(ELEMENTS)) {
+    for (auto &elem : getElements()) {
       elem->accept(visitor);
     }
   }
@@ -23,25 +24,22 @@ void ASTArrayExpr::accept(ASTVisitor *visitor) {
 }
 
 std::ostream &ASTArrayExpr::print(std::ostream &out) const {
-  out << "[";
+  out << "["; // [
   if (ELEMENTS.empty()) {
-    out << "]";
+    out << "]"; // return []
     return out;
   }
-  if (implicit) {
-    out << *ELEMENTS[0] << " of " << *ELEMENTS[1];
-  } else {
-    bool skip = true;
-    for (auto &elem : rawRefs(ELEMENTS)) {
-      if (skip) {
-        skip = false;
-        out << *elem;
-        continue;
-      }
-      out << ", " << *elem;
+  bool skip = true;
+  for (auto &elem : getElements()) {
+    if (skip) { // [e1
+    skip = false;
+    out << *elem;
+    continue;
+    }else{ // [e1, e2
+    out << ", " << *elem;
     }
   }
-  out << "]";
+  out << "]"; // [e1(, e_n)*] or // [e1]
   return out;
 }
 
