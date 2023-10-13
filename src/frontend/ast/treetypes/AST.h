@@ -41,7 +41,7 @@
 #include "ASTPostfixStmt.h"
 #include "ASTTernaryExpr.h"
 #include "ASTArrayLengthExpr.h"
-#include "ASTArraySubscriptExpr.h"
+#include "ASTArrayAccessExpr.h"
 #include "ASTArrayExpr.h"
 #include "ASTNegExpr.h"
 #include "ASTArrayOfExpr.h"
