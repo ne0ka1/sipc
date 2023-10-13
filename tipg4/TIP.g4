@@ -39,9 +39,9 @@ nameDeclaration : IDENTIFIER ;
 
 
 expr : expr '(' (expr (',' expr)*)? ')' 	#funAppExpr
-     | expr'[' expr ']'                     #arrayAccess
+     | expr'[' expr ']'                     #arrayAccessExpr
      | expr '.' IDENTIFIER                  #accessExpr
-     | '#'expr                              #lenOfArray
+     | '#'expr                              #arrayLengthExpr
      | '*' expr                             #deRefExpr
      | SUB NUMBER				            #negNumber
      | SUB expr                        		#negExpr
