@@ -39,29 +39,30 @@ nameDeclaration : IDENTIFIER ;
 
 
 expr : expr '(' (expr (',' expr)*)? ')' 	#funAppExpr
-     | expr'[' expr ']'              #arrayAccess
-     | expr '.' IDENTIFIER #accessExpr
-     | '#'expr                     #lenOfArray
-     | '*' expr #deRefExpr
-     | SUB NUMBER				#negNumber
+     | expr'[' expr ']'                     #arrayAccess
+     | expr '.' IDENTIFIER                  #accessExpr
+     | '#'expr                              #lenOfArray
+     | '*' expr                             #deRefExpr
+     | SUB NUMBER				            #negNumber
      | SUB expr                        		#negExpr
-     | NOT expr 				#notExpr
-     | '&' expr					#refExpr
+     | NOT expr 				            #notExpr
+     | '&' expr					            #refExpr
      | expr op=(MUL | DIV | MOD) expr 		#multiplicativeExpr
-     | expr op=(ADD | SUB) expr 		#additiveExpr
+     | expr op=(ADD | SUB) expr 		    #additiveExpr
      | expr op=(GE | GT | LE | LT) expr 	#relationalExpr
-     | expr op=(EQ | NE) expr 			#equalityExpr
-     | expr op=(AND | OR) expr 	       	#andorExpr
-     | expr '?' expr ':' expr   	#ternaryExpr
-     | (TRUE|FALSE)                #booleanExpr
-     | IDENTIFIER				#varExpr
-     | NUMBER					#numExpr
-     | KINPUT					#inputExpr
-     | KALLOC expr				#allocExpr
-     | KNULL					#nullExpr
-     | recordExpr				#recordRule
-     | ('[' (expr (',' expr)*)? ']' | '[' expr KOF expr ']') #arrayExpr
-     | '(' expr ')'				#parenExpr
+     | expr op=(EQ | NE) expr 			    #equalityExpr
+     | expr op=(AND | OR) expr 	           	#andorExpr
+     | expr '?' expr ':' expr   	        #ternaryExpr
+     | (TRUE|FALSE)                         #booleanExpr
+     | IDENTIFIER				            #varExpr
+     | NUMBER					            #numExpr
+     | KINPUT					            #inputExpr
+     | KALLOC expr				            #allocExpr
+     | KNULL					            #nullExpr
+     | recordExpr				            #recordRule
+     | '[' (expr (',' expr)*)? ']'          #arrayExpr
+     | '[' expr KOF expr ']'                #arrayOfExpr
+     | '(' expr ')'				            #parenExpr
 ;
 
 recordExpr : '{' (fieldExpr (',' fieldExpr)*)? '}' ;
