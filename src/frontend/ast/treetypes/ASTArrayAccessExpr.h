@@ -11,8 +11,8 @@ class ASTArrayAccessExpr : public ASTExpr {
 
 public:
   std::vector<std::shared_ptr<ASTNode>> getChildren() override;
-  ASTArrayAccessExpr(std::unique_ptr<ASTExpr> ARRAY,
-                        std::unique_ptr<ASTExpr> IDX)
+  ASTArrayAccessExpr(std::shared_ptr<ASTExpr> ARRAY,
+                        std::shared_ptr<ASTExpr> IDX)
       : ARRAY(std::move(ARRAY)), IDX(std::move(IDX)) {}
   ASTExpr *getArray() const { return ARRAY.get(); }
   ASTExpr *getIndex() const { return IDX.get(); }

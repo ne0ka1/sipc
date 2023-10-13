@@ -2,7 +2,7 @@
 #include "ASTVisitor.h"
 #include "ASTinternal.h"
 ASTArrayExpr::ASTArrayExpr(
-  std::vector<std::unique_ptr<ASTExpr>> ELEMENTS) {
+  std::vector<std::shared_ptr<ASTExpr>> ELEMENTS) {
   for (auto &element : ELEMENTS) {
     std::shared_ptr<ASTExpr> e = std::move(ELEMENTS);
     this->ELEMENTS.push_back(std::move(e));

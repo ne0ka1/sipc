@@ -9,7 +9,7 @@ class ASTArrayOfExpr : public ASTExpr {
   std::vector<std::shared_ptr<ASTExpr>> ELEMENTS = {};
 
 public:
-  ASTArrayOfExpr(std::vector<std::unique_ptr<ASTExpr>> ELEMENTS);
+  ASTArrayOfExpr(std::vector<std::shared_ptr<ASTExpr>> ELEMENTS);
   void accept(ASTVisitor *visitor) override;
   std::vector<ASTExpr *> getElements() const;
   std::vector<std::shared_ptr<ASTNode>> getChildren() override;
