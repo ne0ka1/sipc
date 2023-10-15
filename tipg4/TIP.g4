@@ -43,7 +43,7 @@ expr : expr '(' (expr (',' expr)*)? ')' 	#funAppExpr
      | expr '.' IDENTIFIER                  #accessExpr
      | '#'expr                              #arrayLengthExpr
      | '*' expr                             #deRefExpr
-     | SUB NUMBER				            #negNumber
+    //  | SUB NUMBER				            #negNumber
      | SUB expr                        		#negExpr
      | NOT expr 				            #notExpr
      | '&' expr					            #refExpr
