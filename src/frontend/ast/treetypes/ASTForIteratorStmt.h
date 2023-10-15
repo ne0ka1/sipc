@@ -6,12 +6,12 @@
 /*! \brief Class for iterator-style for loop statement.
  */
 class ASTForIteratorStmt : public ASTStmt {
-  std::shared_ptr<ASTExpr> ELEM, VECT;
+  std::shared_ptr<ASTExpr> ELEM, ARRAY;
   std::shared_ptr<ASTStmt> BODY;
 
 public:
   std::vector<std::shared_ptr<ASTNode>> getChildren() override;
-  ASTForIteratorStmt(std::shared_ptr<ASTExpr> ELEM, std::shared_ptr<ASTExpr> VECT,
+  ASTForIteratorStmt(std::shared_ptr<ASTExpr> ELEM, std::shared_ptr<ASTExpr> ARRAY,
             std::shared_ptr<ASTStmt> BODY)
     : ELEM(ELEM), ARRAY(ARRAY), BODY(BODY) {}
 

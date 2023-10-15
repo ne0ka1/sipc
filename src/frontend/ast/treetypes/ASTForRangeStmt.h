@@ -16,8 +16,8 @@ public:
             std::shared_ptr<ASTStmt> BODY)
     : COUNTER(COUNTER), BEGIN(BEGIN), END(END), STEP(STEP), BODY(BODY) {}
   ASTExpr *getCounter() const { return COUNTER.get(); }
-  ASTExpr *getBEGIN() const { return BEGIN.get(); }
-  ASTExpr *getEND() const { return END.get(); }
+  ASTExpr *getBegin() const { return BEGIN.get(); }
+  ASTExpr *getEnd() const { return END.get(); }
 
   /*! \fn getStep
    * \return Step Expression if it exists and nullptr otherwise.
