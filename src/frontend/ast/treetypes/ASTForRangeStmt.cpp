@@ -32,7 +32,7 @@ std::vector<std::shared_ptr<ASTNode>> ASTForRangeStmt::getChildren() {
   if (getStep() != nullptr) {
     children.push_back(STEP);
   }
-  children.push_back(BODY)
+  children.push_back(BODY);
 
   return children;
 }
