@@ -61,6 +61,8 @@ target_sources(
           ${CMAKE_CURRENT_SOURCE_DIR}/treetypes/ASTNumberExpr.h
           ${CMAKE_CURRENT_SOURCE_DIR}/treetypes/ASTOutputStmt.cpp
           ${CMAKE_CURRENT_SOURCE_DIR}/treetypes/ASTOutputStmt.h
+          ${CMAKE_CURRENT_SOURCE_DIR}/treetypes/ASTPostfixStmt.cpp
+          ${CMAKE_CURRENT_SOURCE_DIR}/treetypes/ASTPostfixStmt.h
           ${CMAKE_CURRENT_SOURCE_DIR}/treetypes/ASTProgram.cpp
           ${CMAKE_CURRENT_SOURCE_DIR}/treetypes/ASTProgram.h
           ${CMAKE_CURRENT_SOURCE_DIR}/treetypes/ASTRecordExpr.cpp
