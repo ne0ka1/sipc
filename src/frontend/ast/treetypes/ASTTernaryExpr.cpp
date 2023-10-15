@@ -12,7 +12,7 @@ void ASTTernaryExpr::accept(ASTVisitor *visitor) {
 }
 
 std::ostream &ASTTernaryExpr::print(std::ostream &out) const {
-  out << *getCOND() << " ? " << *getTHEN() << " : " << *getELSE();
+  out << *getCondition() << " ? " << *getThen() << " : " << *getElse();
   return out;
 }
 
