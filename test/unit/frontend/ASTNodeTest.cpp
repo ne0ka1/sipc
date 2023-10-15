@@ -87,3 +87,28 @@ for (int i=0; i < 3; i++) {
 REQUIRE(visitor.postPrintStrings[i] == expected[i]);
 }
 }
+
+TEST_CASE("ASTNodeTest: ASTBoolean", "[ASTNode]") {
+auto true_expr = std::make_unique<ASTBooleanExpr>("true");
+auto false_expr = std::make_unique<ASTBooleanExpr>("false");
+// Test Print Method
+// true
+std::stringstream nodePrintStream;
+nodePrintStream << *true_expr;
+REQUIRE(nodePrintStream.str() == "true");
+// false
+std::stringstream nodePrintStream2;
+nodePrintStream2 << *false_expr;
+REQUIRE(nodePrintStream2.str() == "false");
+// Test getters
+REQUIRE(true == true_expr->getValue());
+REQUIRE(false == false_expr->getValue());
+// Test accept
+RecordPostPrint visitor1;
+true_expr->accept(&visitor1);
+false_expr->accept(&visitor2);
+std::string expected1 = "true";
+std::string expected2 = "false";
+REQUIRE(visitor1.postPrintStrings[0] == expected1);
+REQUIRE(visitor2.postPrintStrings[0] == expected2);
+}
