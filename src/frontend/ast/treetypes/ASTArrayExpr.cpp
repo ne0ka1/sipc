@@ -4,7 +4,7 @@
 ASTArrayExpr::ASTArrayExpr(
   std::vector<std::shared_ptr<ASTExpr>> ELEMENTS) {
   for (auto &element : ELEMENTS) {
-    std::shared_ptr<ASTExpr> e = std::move(ELEMENTS);
+    std::shared_ptr<ASTExpr> e = std::move(element);
     this->ELEMENTS.push_back(std::move(e));
   }
 }
