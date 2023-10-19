@@ -179,6 +179,63 @@ void ASTBuilder::visitBinaryExpr(T *ctx, const std::string &op) {
                            ctx->getStart()->getCharPositionInLine());
 }
 
+Any ASTBuilder::visitArrayExpr(TIPParser::ArrayExprContext *ctx){
+  return ""
+}
+
+Any ASTBuilder::visitArrayOfExpr(TIPParser::ArrayOfExprContext *ctx){
+  return "" 
+}
+
+Any ASTBuilder::visitArrayAccessExpr(TIPParser::ArrayAccessExprContext *ctx){
+  return "" 
+}
+
+Any ASTBuilder::visitArrayLengthExpr(TIPParser::ArrayLengthExprContext *ctx){
+  return ""
+}
+
+Any ASTBuilder::visitBooleanExpr(TIPParser::BooleanExprContext *ctx) {
+    bool value;   
+    if(ctx->TRUE()) {
+        value = true;
+    } else if(ctx->FALSE()) {
+        value = false;
+    }
+    visitedExpr = std::make_shared<ASTBooleanExpr>(value);
+    LOG_S(1) << "Built AST node " << *visitedExpr;
+    // Set source location
+    visitedExpr->setLocation(ctx->getStart()->getLine(),
+                             ctx->getStart()->getCharPositionInLine());
+    return "";
+}
+
+
+Any ASTBuilder::visitNotExpr(TIPParser::NotExprContext *ctx) {
+    // First visit expression
+    auto expr = visit(ctx->expr()); 
+    // create not node
+    visitedExpr = std::make_shared<ASTNotExpr>(expr);
+    LOG_S(1) << "Built AST node " << *visitedExpr;
+    // Set source location
+    visitedExpr->setLocation(ctx->getStart()->getLine(),
+                             ctx->getStart()->getCharPositionInLine());
+    return "";
+}
+
+Any ASTBuilder::visitNegExpr(TIPParser::NegExprContext *ctx) {
+    // First visit expression
+    auto expr = visit(ctx->expr()); 
+    // create neg node
+    visitedExpr = std::make_shared<ASTNegExpr>(expr);
+    LOG_S(1) << "Built AST node " << *visitedExpr;
+    // Set source location
+    visitedExpr->setLocation(ctx->getStart()->getLine(),
+                             ctx->getStart()->getCharPositionInLine());
+    return "";
+}
+
+
 Any ASTBuilder::visitAdditiveExpr(TIPParser::AdditiveExprContext *ctx) {
   visitBinaryExpr(ctx, opString(ctx->op->getType()));
   return "";
