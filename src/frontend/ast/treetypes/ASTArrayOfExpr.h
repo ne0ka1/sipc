@@ -13,7 +13,7 @@ public:
   void accept(ASTVisitor *visitor) override;
   std::vector<ASTExpr *> getElements() const;
   std::vector<std::shared_ptr<ASTNode>> getChildren() override;
-  llvm::Value *codegen() override;
+  llvm::Value *codegen() override { return nullptr; };
 
 protected:
   std::ostream &print(std::ostream &out) const override;

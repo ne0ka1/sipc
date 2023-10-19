@@ -62,6 +62,7 @@ public:
    * \return LLVM value holding an representation of the generated code.
    */
   virtual llvm::Value *codegen() = 0;
+  
 
   /*! \fn getChildren
    *  \brief Return all of the children for the node.

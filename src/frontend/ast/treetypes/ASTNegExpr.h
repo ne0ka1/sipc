@@ -6,14 +6,14 @@
 */
 
 class ASTNegExpr : public ASTExpr {
-   std::shared_ptr<ASTExpr> NEG;
+   std::shared_ptr<ASTExpr> VALUE;
 
 public:
     std::vector<std::shared_ptr<ASTNode>> getChildren() override;
-    ASTNegExpr(std::shared_ptr<ASTExpr> NEG) : NEG(NEG) {}
-    ASTExpr * getNeg() const { return NEG.get(); }
-    void accept(ASTVisitor * visitor) override;
-    llvm::Value *codegen() override;
+    ASTNegExpr(std::shared_ptr<ASTExpr> VALUE) : VALUE(VALUE) {}
+    ASTExpr *getArg() const { return VALUE.get(); }
+    void accept(ASTVisitor *visitor) override;
+    llvm::Value *codegen() override { return nullptr; };
 protected:
     std::ostream& print(std::ostream &out) const override;
 };

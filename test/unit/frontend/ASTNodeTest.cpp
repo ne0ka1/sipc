@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include "ASTVisitor.h"
+#include <vector>
 class RecordPostPrint : public ASTVisitor {
 public:
 std::vector<std::string> postPrintStrings;
@@ -26,7 +27,6 @@ void endVisit(ASTTernaryExpr * element) { record(element); }
 void endVisit(ASTPostfixStmt * element) { record(element); }
 void endVisit(ASTForIteratorStmt * element) { record(element); }
 void endVisit(ASTForRangeStmt * element) { record(element); }
-
 void endVisit(ASTBinaryExpr * element) { record(element); }
 void endVisit(ASTInputExpr * element) { record(element); }
 void endVisit(ASTFunAppExpr * element) { record(element); }
@@ -115,7 +115,6 @@ std::string expected2 = "false";
 REQUIRE(visitor1.postPrintStrings[0] == expected1);
 REQUIRE(visitor2.postPrintStrings[0] == expected2);
 }
-
 TEST_CASE("ASTNodeTest: ASTTernary", "[ASTNode]") {
 auto cond_expr = std::make_shared<ASTBooleanExpr>(true);
 auto then_expr = std::make_shared<ASTVariableExpr>("x");
@@ -250,6 +249,238 @@ RecordPostPrint visitor;
 foriterator->accept(&visitor);
 std::string expected[] = {"x", "10", "x", "x++;", "for (x : 10){ x++; }"};
 for (int i=0; i < 5; i++){
+REQUIRE(visitor.postPrintStrings[i] == expected[i]);
+}
+}
+
+TEST_CASE("ASTNodeTest: ASTArrayExpr: empty array","[ASTNode]") {
+std::vector<std::shared_ptr<ASTExpr>> exprList;
+
+auto array =
+    std::make_shared<ASTArrayExpr>(exprList);
+
+// Test Print Method
+std::stringstream nodePrintStream;
+nodePrintStream << *array;
+REQUIRE(nodePrintStream.str() == "[]");
+
+// Test getChildren
+auto children = array->getChildren();
+REQUIRE(children.size() == 0);
+
+// Test accept
+RecordPostPrint visitor;
+array->accept(&visitor);
+
+std::string expected[] = {"[]"};
+REQUIRE(visitor.postPrintStrings[0] == expected[0]);
+}
+
+TEST_CASE("ASTNodeTest: ASTArrayExpr: non-empty","[ASTNode]") {
+auto one = std::make_shared<ASTNumberExpr>(1);
+auto two = std::make_shared<ASTNumberExpr>(2);
+auto oneNode = one.get();
+auto twoNode = two.get();
+std::vector<std::shared_ptr<ASTExpr>> exprList;
+
+exprList.push_back(one);
+exprList.push_back(two);
+
+auto array =
+    std::make_shared<ASTArrayExpr>(exprList);
+
+// Test Print Method
+std::stringstream nodePrintStream;
+nodePrintStream << *array;
+REQUIRE(nodePrintStream.str() == "[1, 2]");
+
+// Test getChildren
+auto children = array->getChildren();
+REQUIRE(children.size() == 2);
+REQUIRE(contains(children, oneNode));
+REQUIRE(contains(children, twoNode));
+
+// Test accept
+RecordPostPrint visitor;
+array->accept(&visitor);
+
+std::string expected[] = {"1", "2", "[1, 2]"};
+for (int i = 0; i < 3; i++) {
+REQUIRE(visitor.postPrintStrings[i] == expected[i]);
+}
+}
+
+TEST_CASE("ASTNodeTest: ASTArrayOfExpr","[ASTNode]") {
+auto one = std::make_shared<ASTNumberExpr>(1);
+auto two = std::make_shared<ASTNumberExpr>(2);
+
+auto oneNode = one.get();
+auto twoNode = two.get();
+
+std::vector<std::shared_ptr<ASTExpr>> exprList;
+exprList.push_back(one);
+exprList.push_back(two);
+
+auto array =
+    std::make_shared<ASTArrayOfExpr>(exprList);
+
+// Test Print Method
+std::stringstream nodePrintStream;
+nodePrintStream << *array;
+REQUIRE(nodePrintStream.str() == "[1 of 2]");
+
+// Test getChildren
+auto children = array->getChildren();
+REQUIRE(children.size() == 2);
+REQUIRE(contains(children, oneNode));
+REQUIRE(contains(children, twoNode));
+
+// Test accept
+RecordPostPrint visitor;
+array->accept(&visitor);
+
+std::string expected[] = {"1", "2", "[1 of 2]"};
+for (int i = 0; i < 3; i++) {
+REQUIRE(visitor.postPrintStrings[i] == expected[i]);
+}
+}
+
+TEST_CASE("ASTNodeTest: ASTArrayLength: variable", "[ASTNode]") {
+auto id = std::make_shared<ASTVariableExpr>("x");
+auto idValue = id.get();
+auto arrayLength = std::make_shared<ASTArrayLengthExpr>(id);
+
+// Test Print Method
+std::stringstream nodePrintStream;
+nodePrintStream << *arrayLength;
+REQUIRE(nodePrintStream.str() == "#x");
+
+// Test getChildren
+auto children = arrayLength->getChildren();
+REQUIRE(children.size() == 1);
+REQUIRE(contains(children, idValue));
+
+// Test accept
+RecordPostPrint visitor;
+arrayLength->accept(&visitor);
+
+std::string expected[] = {"x", "#x"};
+for (int i = 0; i < 2; i++) {
+    REQUIRE(visitor.postPrintStrings[i] == expected[i]);
+}
+}
+
+
+TEST_CASE("ASTNodeTest: ASTArrayLength: array size", "[ASTNode]") {
+auto one = std::make_shared<ASTNumberExpr>(1);
+auto two = std::make_shared<ASTNumberExpr>(2);
+auto oneNode = one.get();
+auto twoNode = two.get();
+
+std::vector<std::shared_ptr<ASTExpr>> exprList;
+
+exprList.push_back(one);
+exprList.push_back(two);
+
+auto array = std::make_shared<ASTArrayExpr>(exprList);
+auto arrayValue = array.get();
+auto arrayLength = std::make_shared<ASTArrayLengthExpr>(array);
+// Print
+std::stringstream nodePrintStream;
+nodePrintStream << *arrayLength;
+REQUIRE(nodePrintStream.str() == "#[1, 2]");
+
+// Test getChildren
+auto children = arrayLength->getChildren();
+REQUIRE(children.size() == 1);
+REQUIRE(contains(children, arrayValue));
+
+
+// Test accept
+RecordPostPrint visitor;
+arrayLength->accept(&visitor);
+std::string expected[] = {"1","2","#[1, 2]"};
+for (int i = 0; i < 1; i++) {
+    REQUIRE(visitor.postPrintStrings[i] == expected[i]);
+}
+}
+
+
+TEST_CASE("ASTNodeTest: ASTArrayLength: empty array", "[ASTNode]") {
+std::vector<std::shared_ptr<ASTExpr>> exprList;
+
+auto array = std::make_shared<ASTArrayExpr>(exprList);
+auto arrayValue = array.get();
+auto arrayLength = std::make_shared<ASTArrayLengthExpr>(array);
+// Print
+std::stringstream nodePrintStream;
+nodePrintStream << *arrayLength;
+REQUIRE(nodePrintStream.str() == "#[]");
+
+// Test getChildren
+auto children = arrayLength->getChildren();
+REQUIRE(children.size() == 1);
+REQUIRE(contains(children, arrayValue));
+
+
+// Test accept
+RecordPostPrint visitor;
+arrayLength->accept(&visitor);
+std::string expected[] = {"[]","#[]"};
+for (int i = 0; i < 1; i++) {
+    REQUIRE(visitor.postPrintStrings[i] == expected[i]);
+}
+}
+
+TEST_CASE("ASTNodeTest: Negative Expression: variable", "[ASTNode]") {
+auto var = std::make_shared<ASTVariableExpr>("x");
+auto negated = std::make_shared<ASTNegExpr>(var);
+auto varexpr = var.get();
+
+// Print
+std::stringstream nodePrintStream;
+nodePrintStream << *negated;
+REQUIRE(nodePrintStream.str() == "-x");
+
+// Test getters
+REQUIRE(varexpr == negated->getArg());
+
+// Test getChildren
+auto children = negated->getChildren();
+REQUIRE(children.size() == 1);
+REQUIRE(contains(children, varexpr));
+
+// Test accept
+RecordPostPrint visitor;
+negated->accept(&visitor);
+std::string expected[] = { "x", "-x" };
+for (int i=0; i < 1; i++) {
+REQUIRE(visitor.postPrintStrings[i] == expected[i]);
+}
+}
+
+TEST_CASE("ASTNodeTest: Not Expression: variable", "[ASTNode]") {
+auto var = std::make_shared<ASTVariableExpr>("x");
+auto notexpr = std::make_shared<ASTNotExpr>(var);
+auto varexpr = var.get();
+// Print
+std::stringstream nodePrintStream;
+nodePrintStream << *notexpr;
+REQUIRE(nodePrintStream.str() == "not x");
+
+// Test getters
+REQUIRE(varexpr == notexpr->getArg());
+
+// Test getChildren
+auto children = notexpr->getChildren();
+REQUIRE(children.size() == 1);
+REQUIRE(contains(children, varexpr));
+
+// Test accept
+RecordPostPrint visitor;
+notexpr->accept(&visitor);
+std::string expected[] = { "x", "not x" };
+for (int i=0; i < 1; i++) {
 REQUIRE(visitor.postPrintStrings[i] == expected[i]);
 }
 }
