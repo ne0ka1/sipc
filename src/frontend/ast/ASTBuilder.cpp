@@ -19,14 +19,26 @@ std::string ASTBuilder::opString(int op) {
   case TIPParser::DIV:
     opStr = "/";
     break;
+  case TIPParser::MOD:
+    opStr = "%";
+    break;
   case TIPParser::ADD:
     opStr = "+";
     break;
   case TIPParser::SUB:
     opStr = "-";
     break;
+  case TIPParser::GE:
+    opStr = ">=";
+    break;
   case TIPParser::GT:
     opStr = ">";
+    break;
+  case TIPParser::LE:
+    opStr = "<=";
+    break;
+  case TIPParser::LT:
+    opStr = "<";
     break;
   case TIPParser::EQ:
     opStr = "==";
@@ -34,6 +46,13 @@ std::string ASTBuilder::opString(int op) {
   case TIPParser::NE:
     opStr = "!=";
     break;
+  case TIPParser::AND:
+    opStr = "and";
+    break;
+  case TIPParser::OR:
+    opStr = "or";
+    break;
+
   default:
     throw std::runtime_error(
         "unknown operator :" +
@@ -253,6 +272,11 @@ Any ASTBuilder::visitMultiplicativeExpr(
 } // LCOV_EXCL_LINE
 
 Any ASTBuilder::visitEqualityExpr(TIPParser::EqualityExprContext *ctx) {
+  visitBinaryExpr(ctx, opString(ctx->op->getType()));
+  return "";
+} // LCOV_EXCL_LINE
+
+Any ASTBuilder::visitAndorExpr(TIPParser::AndorExprContext *ctx) {
   visitBinaryExpr(ctx, opString(ctx->op->getType()));
   return "";
 } // LCOV_EXCL_LINE
