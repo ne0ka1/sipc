@@ -11,7 +11,7 @@ public:
   ASTBooleanExpr(bool VAL) : VAL(VAL) {}
   bool getValue() const {return VAL; }
   void accept(ASTVisitor *visitor) override;
-  llvm::Value *codegen() override;
+  llvm::Value *codegen() override { return nullptr; };
 
 protected:
   std::ostream &print(std::ostream &out) const override;

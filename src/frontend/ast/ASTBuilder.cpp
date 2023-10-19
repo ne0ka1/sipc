@@ -139,18 +139,18 @@ Any ASTBuilder::visitFunction(TIPParser::FunctionContext *ctx) {
   return "";
 }
 
-Any ASTBuilder::visitNegNumber(TIPParser::NegNumberContext *ctx) {
-  int val = std::stoi(ctx->NUMBER()->getText());
-  val = -val;
-  visitedExpr = std::make_shared<ASTNumberExpr>(val);
+// Any ASTBuilder::visitNegNumber(TIPParser::NegNumberContext *ctx) {
+//   int val = std::stoi(ctx->NUMBER()->getText());
+//   val = -val;
+//   visitedExpr = std::make_shared<ASTNumberExpr>(val);
 
-  LOG_S(1) << "Built AST node " << *visitedExpr;
+//   LOG_S(1) << "Built AST node " << *visitedExpr;
 
-  // Set source location
-  visitedExpr->setLocation(ctx->getStart()->getLine(),
-                           ctx->getStart()->getCharPositionInLine());
-  return "";
-} // LCOV_EXCL_LINE
+//   // Set source location
+//   visitedExpr->setLocation(ctx->getStart()->getLine(),
+//                            ctx->getStart()->getCharPositionInLine());
+//   return "";
+// } // LCOV_EXCL_LINE
 
 /*
  * Unfortunately, the context types for binary expressions generated

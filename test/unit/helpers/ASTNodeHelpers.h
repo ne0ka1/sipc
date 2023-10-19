@@ -20,6 +20,15 @@ public:
   std::ostream &print(std::ostream &out) const override { return out; }
 };
 
+class MockASTBooleanExpr : public ASTBooleanExpr {
+public:
+  llvm::Value *codegen() override { return nullptr; }
+
+  // void accept(ASTVisitor *visitor) override {}
+
+  // std::ostream &print(std::ostream &out) const override { return out; }
+};
+
 } // namespace nullcodegen
 
 namespace simplenodes {

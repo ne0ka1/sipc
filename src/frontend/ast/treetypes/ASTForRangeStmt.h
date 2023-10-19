@@ -15,6 +15,9 @@ public:
             std::shared_ptr<ASTExpr> END, std::shared_ptr<ASTExpr> STEP,
             std::shared_ptr<ASTStmt> BODY)
     : COUNTER(COUNTER), BEGIN(BEGIN), END(END), STEP(STEP), BODY(BODY) {}
+  ASTForRangeStmt(std::shared_ptr<ASTExpr> COUNTER, std::shared_ptr<ASTExpr> BEGIN,
+            std::shared_ptr<ASTExpr> END, std::shared_ptr<ASTStmt> BODY)
+    : COUNTER(COUNTER), BEGIN(BEGIN), END(END), BODY(BODY) {}
   ASTExpr *getCounter() const { return COUNTER.get(); }
   ASTExpr *getBegin() const { return BEGIN.get(); }
   ASTExpr *getEnd() const { return END.get(); }
@@ -26,7 +29,7 @@ public:
 
   ASTStmt *getBody() const { return BODY.get(); }
   void accept(ASTVisitor *visitor) override;
-  llvm::Value *codegen() override;
+  llvm::Value *codegen() override {return nullptr;};
 
 protected:
   std::ostream &print(std::ostream &out) const override;

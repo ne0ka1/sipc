@@ -1,4 +1,5 @@
 #include "ASTHelper.h"
+#include "AST.h"
 #include <catch2/catch_test_macros.hpp>
 #include <iostream>
 #include <sstream>
@@ -89,8 +90,8 @@ REQUIRE(visitor.postPrintStrings[i] == expected[i]);
 }
 
 TEST_CASE("ASTNodeTest: ASTBoolean", "[ASTNode]") {
-auto true_expr = std::make_unique<ASTBooleanExpr>("true");
-auto false_expr = std::make_unique<ASTBooleanExpr>("false");
+auto true_expr = std::make_unique<ASTBooleanExpr>(true);
+auto false_expr = std::make_unique<ASTBooleanExpr>(false);
 // Test Print Method
 // true
 std::stringstream nodePrintStream;
@@ -98,6 +99,7 @@ nodePrintStream << *true_expr;
 REQUIRE(nodePrintStream.str() == "true");
 // false
 std::stringstream nodePrintStream2;
+
 nodePrintStream2 << *false_expr;
 REQUIRE(nodePrintStream2.str() == "false");
 // Test getters
@@ -105,10 +107,149 @@ REQUIRE(true == true_expr->getValue());
 REQUIRE(false == false_expr->getValue());
 // Test accept
 RecordPostPrint visitor1;
+RecordPostPrint visitor2;
 true_expr->accept(&visitor1);
 false_expr->accept(&visitor2);
 std::string expected1 = "true";
 std::string expected2 = "false";
 REQUIRE(visitor1.postPrintStrings[0] == expected1);
 REQUIRE(visitor2.postPrintStrings[0] == expected2);
+}
+
+TEST_CASE("ASTNodeTest: ASTTernary", "[ASTNode]") {
+auto cond_expr = std::make_shared<ASTBooleanExpr>(true);
+auto then_expr = std::make_shared<ASTVariableExpr>("x");
+auto else_expr = std::make_shared<ASTNumberExpr>(0);
+
+auto ternary = std::make_shared<ASTTernaryExpr>(cond_expr, then_expr, else_expr);
+
+// Test Print Method
+std::stringstream nodePrintStream;
+nodePrintStream << *ternary;
+REQUIRE(nodePrintStream.str() == "true ? x : 0");
+// Test getters
+REQUIRE(cond_expr.get() == ternary->getCondition());
+REQUIRE(then_expr.get() == ternary->getThen());
+REQUIRE(else_expr.get() == ternary->getElse());
+// Test getChildren
+auto children = ternary->getChildren();
+REQUIRE(children.size() == 3);
+REQUIRE(contains(children, cond_expr.get()));
+REQUIRE(contains(children, then_expr.get()));
+REQUIRE(contains(children, else_expr.get()));
+
+// Test accept
+RecordPostPrint visitor;
+ternary->accept(&visitor);
+std::string expected[] = {"true", "x", "0", "true ? x : 0"};
+for (int i=0; i < 4; i++){
+REQUIRE(visitor.postPrintStrings[i] == expected[i]);
+}
+}
+
+TEST_CASE("ASTNodeTest: ASTPostfixStmt", "[ASTNode]") {
+auto arg = std::make_shared<ASTVariableExpr>("x");
+
+auto postfixPlus = std::make_shared<ASTPostfixStmt>("++", arg);
+auto postfixMinus = std::make_shared<ASTPostfixStmt>("--", arg);
+
+// Test Print Method
+std::stringstream nodePrintStream;
+nodePrintStream << *postfixPlus;
+REQUIRE(nodePrintStream.str() == "x++;");
+
+// Test Print Method
+std::stringstream nodePrintStream2;
+nodePrintStream2 << *postfixMinus;
+REQUIRE(nodePrintStream2.str() == "x--;");
+
+// Test getters
+REQUIRE(arg.get() == postfixPlus->getArg());
+REQUIRE("++" == postfixPlus->getOp());
+REQUIRE("--" == postfixMinus -> getOp());
+
+// Test getChildren
+auto children = postfixPlus->getChildren();
+REQUIRE(children.size() == 1);
+REQUIRE(contains(children, arg.get()));
+
+// Test accept
+RecordPostPrint visitor;
+postfixPlus->accept(&visitor);
+std::string expected[] = {"x", "x++;"};
+for (int i=0; i < 2; i++){
+REQUIRE(visitor.postPrintStrings[i] == expected[i]);
+}
+}
+
+
+TEST_CASE("ASTNodeTest: ASTForRangeStmt", "[ASTNode]") {
+auto counter = std::make_shared<ASTVariableExpr>("x");
+auto begin = std::make_shared<ASTNumberExpr>(0);
+auto end = std::make_shared<ASTNumberExpr>(4);
+auto step = std::make_shared<ASTNumberExpr>(1);
+
+auto body = std::make_shared<ASTPostfixStmt>("++", counter);
+auto forrange = std::make_shared<ASTForRangeStmt>(counter, begin, end, step, body);
+auto forrange_nostep = std::make_shared<ASTForRangeStmt>(counter, begin, end, body);
+
+// Test Print Method
+std::stringstream nodePrintStream;
+nodePrintStream << *forrange;
+REQUIRE(nodePrintStream.str() == "for (x : 0..4 by 1){ x++; }");
+// Test getters
+REQUIRE(counter.get() == forrange->getCounter());
+REQUIRE(begin.get() == forrange->getBegin());
+REQUIRE(end.get() == forrange->getEnd());
+REQUIRE(step.get() == forrange->getStep());
+REQUIRE(body.get() == forrange->getBody());
+REQUIRE(nullptr == forrange_nostep->getStep());
+
+// Test getChildren
+auto children = forrange->getChildren();
+REQUIRE(children.size() == 5);
+REQUIRE(contains(children, counter.get()));
+REQUIRE(contains(children, begin.get()));
+REQUIRE(contains(children, end.get()));
+REQUIRE(contains(children, step.get()));
+REQUIRE(contains(children, body.get()));
+
+// Test accept
+RecordPostPrint visitor;
+forrange->accept(&visitor);
+std::string expected[] = {"x", "0", "4", "1", "x", "x++;", "for (x : 0..4 by 1){ x++; }"};
+for (int i=0; i < 7; i++){
+REQUIRE(visitor.postPrintStrings[i] == expected[i]);
+}
+}
+
+TEST_CASE("ASTNodeTest: ASTForIteratorStmt", "[ASTNode]") {
+auto elem = std::make_shared<ASTVariableExpr>("x");
+auto fake_array = std::make_shared<ASTNumberExpr>(10);
+auto body = std::make_shared<ASTPostfixStmt>("++", elem);
+auto foriterator = std::make_shared<ASTForIteratorStmt>(elem, fake_array, body);
+
+// Test Print Method
+std::stringstream nodePrintStream;
+nodePrintStream << *foriterator;
+REQUIRE(nodePrintStream.str() == "for (x : 10){ x++; }");
+// Test getters
+REQUIRE(elem.get() == foriterator->getElement());
+REQUIRE(fake_array.get() == foriterator->getArray());
+REQUIRE(body.get() == foriterator->getBody());
+
+// Test getChildren
+auto children = foriterator->getChildren();
+REQUIRE(children.size() == 3);
+REQUIRE(contains(children, elem.get()));
+REQUIRE(contains(children, fake_array.get()));
+REQUIRE(contains(children, body.get()));
+
+// Test accept
+RecordPostPrint visitor;
+foriterator->accept(&visitor);
+std::string expected[] = {"x", "10", "x", "x++;", "for (x : 10){ x++; }"};
+for (int i=0; i < 5; i++){
+REQUIRE(visitor.postPrintStrings[i] == expected[i]);
+}
 }
