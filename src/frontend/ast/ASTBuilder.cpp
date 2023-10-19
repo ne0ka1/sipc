@@ -52,7 +52,12 @@ std::string ASTBuilder::opString(int op) {
   case TIPParser::OR:
     opStr = "or";
     break;
-
+  case TIPParser::NOT:
+    opStr = "not";
+    break;
+  case TIPParser::KOF:
+    opStr = "of";
+    break;
   default:
     throw std::runtime_error(
         "unknown operator :" +
@@ -199,19 +204,66 @@ void ASTBuilder::visitBinaryExpr(T *ctx, const std::string &op) {
 }
 
 Any ASTBuilder::visitArrayExpr(TIPParser::ArrayExprContext *ctx){
-  return ""
+    // List of Expressions
+    std::vector<std::shared_ptr<ASTExpr>> elements;
+    // Iterate through ArrayExprContext
+    for(auto& elementContext : ctx->expr()) {
+        elements.push_back(visit(elementContext));
+    }
+    visitedExpr = std::make_shared<ASTArrayExpr>(elements);
+    LOG_S(1) << "Built AST node " << *visitedExpr;
+
+    // Set source location
+    visitedExpr->setLocation(ctx->getStart()->getLine(),
+                             ctx->getStart()->getCharPositionInLine());
+    return "";
 }
 
 Any ASTBuilder::visitArrayOfExpr(TIPParser::ArrayOfExprContext *ctx){
-  return "" 
+  // EXPR_1
+    auto Expr1 = visit(ctx->expr(0));
+    // EXPR_2
+    auto Expr2 = visit(ctx->expr(1));
+    // [EXPR_1 of EXPR_2]
+    visitedExpr = std::make_shared<ASTArrayOfExpr>(Expr1, Expr2);
+
+    LOG_S(1) << "Built AST node " << *visitedExpr;
+
+    // Set source location
+    visitedExpr->setLocation(ctx->getStart()->getLine(),
+                             ctx->getStart()->getCharPositionInLine());
+    return "";
 }
 
-Any ASTBuilder::visitArrayAccessExpr(TIPParser::ArrayAccessExprContext *ctx){
-  return "" 
+Any ASTBuilder::visitArrayAccessExpr(TIPParser::ArrayAccessExprContext *ctx) {
+    // First, visit the array expression
+    auto arrayExpr = visit(ctx->expr(0)); 
+
+    // Then, visit the index expression
+    auto indexExpr = visit(ctx->expr(1)); 
+
+    // create an AST node for the array access using the array and index
+    visitedExpr = std::make_shared<ASTArrayAccessExpr>(arrayExpr, indexExpr);
+
+    LOG_S(1) << "Built AST node " << *visitedExpr;
+
+    // Set source location
+    visitedExpr->setLocation(ctx->getStart()->getLine(),
+                             ctx->getStart()->getCharPositionInLine());
+    return "";
 }
+
 
 Any ASTBuilder::visitArrayLengthExpr(TIPParser::ArrayLengthExprContext *ctx){
-  return ""
+  // First visit expression
+    auto expr = visit(ctx->expr()); 
+    // create array access node
+    visitedExpr = std::make_shared<ASTAccessExpr>(expr);
+    LOG_S(1) << "Built AST node " << *visitedExpr;
+    // Set source location
+    visitedExpr->setLocation(ctx->getStart()->getLine(),
+                             ctx->getStart()->getCharPositionInLine());
+    return "";
 }
 
 Any ASTBuilder::visitBooleanExpr(TIPParser::BooleanExprContext *ctx) {
