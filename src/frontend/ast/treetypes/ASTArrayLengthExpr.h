@@ -13,7 +13,7 @@ public:
     ASTArrayLengthExpr(std::shared_ptr<ASTExpr> ARRAY) : ARRAY(ARRAY) {}
     ASTExpr * getArray() const { return ARRAY.get(); }
     void accept(ASTVisitor * visitor) override;
-    llvm::Value *codegen() override;
+    llvm::Value *codegen() override { return nullptr; };
 protected:
     std::ostream& print(std::ostream &out) const override;
 };
