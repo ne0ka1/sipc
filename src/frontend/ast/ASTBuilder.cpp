@@ -227,12 +227,18 @@ Any ASTBuilder::visitArrayExpr(TIPParser::ArrayExprContext *ctx){
 }
 
 Any ASTBuilder::visitArrayOfExpr(TIPParser::ArrayOfExprContext *ctx){
-  // EXPR_1
-    auto Expr1 = visit(ctx->expr(0));
+    // EXPR_1
+    visit(ctx->expr(0));
+    auto expr1 = visitedExpr;
     // EXPR_2
-    auto Expr2 = visit(ctx->expr(1));
+    visit(ctx->expr(1));
+    auto expr2 = visitedExpr;
+
+
+    // Create a vector and populate it with the two expressions
+    std::vector<std::shared_ptr<ASTExpr>> arrayOfElements = {expr1, expr2};
     // [EXPR_1 of EXPR_2]
-    visitedExpr = std::make_shared<ASTArrayOfExpr>(Expr1, Expr2);
+    visitedExpr = std::make_shared<ASTArrayOfExpr>(arrayOfElements);
 
     LOG_S(1) << "Built AST node " << *visitedExpr;
 
@@ -243,13 +249,13 @@ Any ASTBuilder::visitArrayOfExpr(TIPParser::ArrayOfExprContext *ctx){
 }
 
 Any ASTBuilder::visitPostfixStmt(TIPParser::PostfixStmtContext *ctx) {
-    auto arg = visit(ctx->expr());
-    auto opStr = opString(ctx->op->getType());
-    // Create an AST node for the postfix statement
-    visitedExpr = std::make_shared<ASTPostfixStmt>(opStr, arg);
-    LOG_S(1) << "Built AST node " << *visitedExpr;
+    visit(ctx->expr());
+    auto expr = visitedExpr;
+    visitedStmt = std::make_shared<ASTPostfixStmt>(opString(ctx->op->getType()),expr);
+     
+    LOG_S(1) << "Built AST node " << *visitedStmt;
     // Set source location
-    visitedExpr->setLocation(ctx->getStart()->getLine(),
+    visitedStmt->setLocation(ctx->getStart()->getLine(),
                              ctx->getStart()->getCharPositionInLine());
     return "";
 }
@@ -257,13 +263,15 @@ Any ASTBuilder::visitPostfixStmt(TIPParser::PostfixStmtContext *ctx) {
 
 Any ASTBuilder::visitArrayAccessExpr(TIPParser::ArrayAccessExprContext *ctx) {
     // First, visit the array expression
-    auto arrayExpr = visit(ctx->expr(0)); 
+    visit(ctx->expr(0)); 
+    auto array = visitedExpr;
 
     // Then, visit the index expression
-    auto indexExpr = visit(ctx->expr(1)); 
+    visit(ctx->expr(1)); 
+    auto index = visitedExpr;
 
     // create an AST node for the array access using the array and index
-    visitedExpr = std::make_shared<ASTArrayAccessExpr>(arrayExpr, indexExpr);
+    visitedExpr = std::make_shared<ASTArrayAccessExpr>(array, index);
 
     LOG_S(1) << "Built AST node " << *visitedExpr;
 
@@ -275,10 +283,11 @@ Any ASTBuilder::visitArrayAccessExpr(TIPParser::ArrayAccessExprContext *ctx) {
 
 
 Any ASTBuilder::visitArrayLengthExpr(TIPParser::ArrayLengthExprContext *ctx){
-  // First visit expression
-    auto expr = visit(ctx->expr()); 
+    // First visit expression
+    visit(ctx->expr()); 
+    auto expr = visitedExpr;
     // create array access node
-    visitedExpr = std::make_shared<ASTAccessExpr>(expr);
+    visitedExpr = std::make_shared<ASTArrayLengthExpr>(expr);
     LOG_S(1) << "Built AST node " << *visitedExpr;
     // Set source location
     visitedExpr->setLocation(ctx->getStart()->getLine(),
@@ -304,7 +313,8 @@ Any ASTBuilder::visitBooleanExpr(TIPParser::BooleanExprContext *ctx) {
 
 Any ASTBuilder::visitNotExpr(TIPParser::NotExprContext *ctx) {
     // First visit expression
-    auto expr = visit(ctx->expr()); 
+    visit(ctx->expr()); 
+    auto expr = visitedExpr;
     // create not node
     visitedExpr = std::make_shared<ASTNotExpr>(expr);
     LOG_S(1) << "Built AST node " << *visitedExpr;
@@ -316,7 +326,8 @@ Any ASTBuilder::visitNotExpr(TIPParser::NotExprContext *ctx) {
 
 Any ASTBuilder::visitNegExpr(TIPParser::NegExprContext *ctx) {
     // First visit expression
-    auto expr = visit(ctx->expr()); 
+    visit(ctx->expr());
+    auto expr = visitedExpr;
     // create neg node
     visitedExpr = std::make_shared<ASTNegExpr>(expr);
     LOG_S(1) << "Built AST node " << *visitedExpr;
