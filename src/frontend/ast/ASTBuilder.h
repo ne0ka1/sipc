@@ -70,6 +70,7 @@ public:
 
   // SIP Expansion
   Any visitBooleanExpr(TIPParser::BooleanExprContext *ctx) override;
+  Any visitAndorExpr(TIPParser::AndorExprContext *ctx) override;
   Any visitArrayExpr(TIPParser::ArrayExprContext *ctx) override;
   Any visitArrayOfExpr(TIPParser::ArrayOfExprContext *ctx) override;
   Any visitArrayAccessExpr(TIPParser::ArrayAccessExprContext *ctx) override;
@@ -77,7 +78,7 @@ public:
   Any visitNotExpr(TIPParser::NotExprContext *ctx) override;
   Any visitNegExpr(TIPParser::NegExprContext *ctx) override;
   Any visitTernaryExpr(TIPParser::TernaryExprContext *ctx) override;
-  Any visitPostfixStmt(TIPParser::PostfixStmtContext *ctx) override; 
+  Any visitPostfixStmt(TIPParser::PostfixStmtContext *ctx) override;
   Any visitForRangeStmt(TIPParser::ForRangeStmtContext *ctx) override;
   Any visitForIteratorStmt(TIPParser::ForIteratorStmtContext *ctx) override;
 };

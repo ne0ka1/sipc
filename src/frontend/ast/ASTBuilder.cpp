@@ -651,3 +651,62 @@ std::string ASTBuilder::generateSHA256(std::string tohash) {
   picosha2::hash256(tohash.begin(), tohash.end(), hash.begin(), hash.end());
   return picosha2::bytes_to_hex_string(hash.begin(), hash.end());
 }
+
+Any ASTBuilder::visitTernaryExpr(TIPParser::TernaryExprContext *ctx){
+  visit(ctx->expr(0));
+  auto cond_expr = visitedExpr;
+  visit(ctx->expr(1));
+  auto then_expr = visitedExpr;
+  visit(ctx->expr(2));
+  auto else_expr = visitedExpr;
+  visitedExpr = std::make_shared<ASTTernaryExpr>(cond_expr, then_expr, else_expr);
+
+  LOG_S(1) << "Built AST node " << *visitedExpr;
+
+  // Set source location
+  visitedExpr->setLocation(ctx->getStart()->getLine(),
+                           ctx->getStart()->getCharPositionInLine());
+  return "";
+}
+
+Any ASTBuilder::visitForRangeStmt(TIPParser::ForRangeStmtContext *ctx){
+  visit(ctx->expr(0));
+  auto counter = visitedExpr;
+  visit(ctx->expr(1));
+  auto begin = visitedExpr;
+  visit(ctx->expr(2));
+  auto end = visitedExpr;
+  visit(ctx->statement());
+  auto body = visitedStmt;
+  // check whether step exists
+  if (ctx->expr().size() > 3){
+  visit(ctx->expr(3));
+  auto step = visitedExpr;
+  visitedStmt = std::make_shared<ASTForRangeStmt>(counter, begin, end, step, body);
+  }
+  else{
+  visitedStmt = std::make_shared<ASTForRangeStmt>(counter, begin, end, body);
+  }
+ 
+  LOG_S(1) << "Built AST node " << *visitedStmt;
+    // Set source location
+  visitedStmt->setLocation(ctx->getStart()->getLine(),
+                           ctx->getStart()->getCharPositionInLine());
+  return "";
+}
+
+Any ASTBuilder::visitForIteratorStmt(TIPParser::ForIteratorStmtContext *ctx){
+  visit(ctx->expr(0));
+  auto elem = visitedExpr;
+  visit(ctx->expr(1));
+  auto array = visitedExpr;
+  visit(ctx->statement());
+  auto body = visitedStmt;
+  visitedStmt = std::make_shared<ASTForIteratorStmt>(elem, array, body);
+ 
+  LOG_S(1) << "Built AST node " << *visitedStmt;
+    // Set source location
+  visitedStmt->setLocation(ctx->getStart()->getLine(),
+                           ctx->getStart()->getCharPositionInLine());
+  return "";
+}
