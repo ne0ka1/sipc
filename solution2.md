@@ -1,7 +1,7 @@
 # Solution 2
 
 ## AST
-We added new subtypes of ASTNodes including `ASTArrayExpr`, `ASTNotExpr`, `ASTForRangeStmt`, etc.
+We added new subtypes of ASTNodes including `ASTArrayExpr`,`ASTArrayOfExpr` `ASTNotExpr`, `ASTForRangeStmt`, etc.
 In project 1, we wrote one rule for two types of array expressions and one rule for two types of for-loop statements.
 When constructing ASTNodes, however, we found it easier and clearer to separate two types in grammar file, for otherwise we would need a lot of extra logic to distinguish them in one ASTNode.
 So we have `ASTForRangeStmt` and `ASTForIteratorStmt` for two kinds of for-loop statements.
@@ -17,7 +17,7 @@ We directly implemented this in all ASTNodes so that this won't cause errors for
 In later stage of project (say deliverable4) we will delete `return nullptr;` and implement the real `codegen()` methods.
 
 ## AST Visitor
-
+We extended the visitor by adding new visit and endvisit functions for each new node.
 ## AST Builder
 We extended `ASTBuilder.h` and `ASTBuilder.cpp` to build ASTNodes from antlr4 generated contexts.
 In `visitForRangeStmt`, we need to check whether step exists (since it's optional) and we achieve this by checking `ctx->expr().size()` before visiting the optional step expression.
