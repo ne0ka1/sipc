@@ -19,7 +19,7 @@ std::ostream &ASTForRangeStmt::print(std::ostream &out) const {
   if (getStep() != nullptr) {
     out << " by " << *getStep();
   }
-  out << ")" << "{ " << *getBody() << " }";
+  out << ") " << *getBody();
   return out;
 }
 

@@ -11,8 +11,7 @@ void ASTForIteratorStmt::accept(ASTVisitor *visitor) {
 }
 
 std::ostream &ASTForIteratorStmt::print(std::ostream &out) const {
-  out << "for (" << *getElement() << " : " << *getArray() << ")";
-  out << "{ " << *getBody() << " }";
+  out << "for (" << *getElement() << " : " << *getArray() << ") " << *getBody();
   return out;
 }
 

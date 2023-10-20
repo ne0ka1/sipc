@@ -306,15 +306,14 @@ void PrettyPrinter::endVisit(ASTNegExpr *element) {
   visitResults.push_back("-" + arg);
 }
 
-void PrettyPrinter::endVisit(ASTTernaryExpr *element) {
-  std::string E3 = visitResults.back();
+void PrettyPrinter::endVisit(ASTTernaryExpr *element){
+  std::string elseString = visitResults.back();
   visitResults.pop_back();
-  std::string E2 = visitResults.back();
+  std::string thenString = visitResults.back();
   visitResults.pop_back();
-  std::string E1 = visitResults.back();
+  std::string condString = visitResults.back();
   visitResults.pop_back();
-
-  visitResults.push_back(E1 + " ? " + E2 + " : " + E3);
+  visitResults.push_back(condString + " ? " + thenString + " : " + elseString);
 }
 
 bool PrettyPrinter::visit(ASTForRangeStmt *element) {
@@ -326,7 +325,31 @@ void PrettyPrinter::endVisit(ASTForRangeStmt *element) {
   std::string bodyString = visitResults.back();
   visitResults.pop_back();
 
-  visitResults.push_back("");
+  std::string stepString;
+  if (element->getStep() != nullptr) {
+    stepString = visitResults.back();
+    visitResults.pop_back();
+  }
+
+  std::string beginString = visitResults.back();
+  visitResults.pop_back();
+  std::string endString = visitResults.back();
+  visitResults.pop_back();
+  std::string counterString = visitResults.back();
+  visitResults.pop_back();
+
+  indentLevel--;
+
+  std::string forString = indent() + "for (" + counterString + " : " + beginString + ".." + endString;
+
+  if (element->getStep() != nullptr) {
+    forString += " by " + stepString + " )\n" + indent() + bodyString;
+  }
+  else {
+    forString += " )\n" + indent() + bodyString;
+  }
+
+  visitResults.push_back(forString);
 }
 
 bool PrettyPrinter::visit(ASTForIteratorStmt *element) {
@@ -337,7 +360,13 @@ bool PrettyPrinter::visit(ASTForIteratorStmt *element) {
 void PrettyPrinter::endVisit(ASTForIteratorStmt *element) {
   std::string bodyString = visitResults.back();
   visitResults.pop_back();
+  std::string arrayString = visitResults.back();
+  visitResults.pop_back();
+  std::string elemString = visitResults.back();
+  visitResults.pop_back();
 
-  visitResults.push_back("");
+  indentLevel--;
 
+  std::string forString = indent() + "for (" + elemString + " : " + arrayString + "\n" + indent() + bodyString;
+  visitResults.push_back(forString);
 }
