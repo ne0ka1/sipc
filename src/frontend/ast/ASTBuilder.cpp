@@ -215,7 +215,9 @@ Any ASTBuilder::visitArrayExpr(TIPParser::ArrayExprContext *ctx){
 
     // Iterate through ArrayExprContext
     for(auto& elementContext : ctx->expr()) {
-      
+      visit(elementContext);
+      auto item = visitedExpr;
+      elements.push_back(item);
     }
     visitedExpr = std::make_shared<ASTArrayExpr>(elements);
     LOG_S(1) << "Built AST node " << *visitedExpr;
