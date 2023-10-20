@@ -383,7 +383,7 @@ TEST_CASE("SIP Parser: another bad range-style for statement", "[SIP Parser]") {
 TEST_CASE("SIP Parser: negation has higher precedence than modulo", "[SIP Parser]") {
   std::stringstream stream;
   stream << R"(main() { return -3 % 10; })"; 
-  std::string expected = "(expr (expr - 3) % (expr 10))";
+  std::string expected = "(expr (expr - (expr 3)) % (expr 10))";
   std::string tree = ParserHelper::parsetree(stream);
   REQUIRE(tree.find(expected) != std::string::npos);
 }
@@ -391,7 +391,7 @@ TEST_CASE("SIP Parser: negation has higher precedence than modulo", "[SIP Parser
 TEST_CASE("SIP Parser: not, and, or precedence", "[SIP Parser]") {
   std::stringstream stream;
   stream << R"(main() { return not false or true and false; })"; 
-  std::string expected = "(expr (expr not (expr false)) or (expr (expr true) and (expr false)))";
+  std::string expected = "(expr (expr (expr not (expr false)) or (expr true)) and (expr false))";
   std::string tree = ParserHelper::parsetree(stream);
   REQUIRE(tree.find(expected) != std::string::npos);
 }
@@ -421,7 +421,7 @@ TEST_CASE("SIP Parser: relationalExpr left to right precedence", "[SIP Parser]")
 TEST_CASE("SIP Parser: negation precedence and relationalExpr", "[SIP Parser]") {
   std::stringstream stream;
   stream << R"(main() { return -3 < 2; })"; 
-  std::string expected = "(expr (expr - 3) < (expr 2))";
+  std::string expected = "(expr (expr - (expr 3)) < (expr 2))";
   std::string tree = ParserHelper::parsetree(stream);
   REQUIRE(tree.find(expected) != std::string::npos);
 }
@@ -490,7 +490,7 @@ TEST_CASE("SIP Parser: field select is higher in precedence than negation", "[SI
                         return {f1:-1};
                       }
               )"; 
-  std::string expected = "(expr (recordExpr { (fieldExpr f1 : (expr - 1)) }))";
+  std::string expected = "(expr (recordExpr { (fieldExpr f1 : (expr - (expr 1))) }))";
   std::string tree = ParserHelper::parsetree(stream);
   REQUIRE(tree.find(expected) != std::string::npos);
 }
