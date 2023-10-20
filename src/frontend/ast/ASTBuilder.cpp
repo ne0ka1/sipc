@@ -59,10 +59,10 @@ std::string ASTBuilder::opString(int op) {
     opStr = "of";
     break;
   case TIPParser::PLUSPLUS:
-    opStr = "++"
+    opStr = "++";
     break;
   case TIPParser::MINUSMINUS:
-    opStr = "--"
+    opStr = "--";
     break;  
   default:
     throw std::runtime_error(
@@ -212,9 +212,10 @@ void ASTBuilder::visitBinaryExpr(T *ctx, const std::string &op) {
 Any ASTBuilder::visitArrayExpr(TIPParser::ArrayExprContext *ctx){
     // List of Expressions
     std::vector<std::shared_ptr<ASTExpr>> elements;
+
     // Iterate through ArrayExprContext
     for(auto& elementContext : ctx->expr()) {
-        elements.push_back(visit(elementContext));
+      
     }
     visitedExpr = std::make_shared<ASTArrayExpr>(elements);
     LOG_S(1) << "Built AST node " << *visitedExpr;

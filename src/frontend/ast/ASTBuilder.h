@@ -72,11 +72,12 @@ public:
   Any visitBooleanExpr(TIPParser::BooleanExprContext *ctx) override;
   Any visitArrayExpr(TIPParser::ArrayExprContext *ctx) override;
   Any visitArrayOfExpr(TIPParser::ArrayOfExprContext *ctx) override;
+  Any visitArrayAccessExpr(TIPParser::ArrayAccessExprContext *ctx) override;
   Any visitArrayLengthExpr(TIPParser::ArrayLengthExprContext *ctx) override;
   Any visitNotExpr(TIPParser::NotExprContext *ctx) override;
   Any visitNegExpr(TIPParser::NegExprContext *ctx) override;
   Any visitTernaryExpr(TIPParser::TernaryExprContext *ctx) override;
-  Any visitPostfixExpr(TIPParser::PostfixStmtContext *ctx) 
+  Any visitPostfixStmt(TIPParser::PostfixStmtContext *ctx) override; 
   Any visitForRangeStmt(TIPParser::ForRangeStmtContext *ctx) override;
-  Any visitForIteratorStmt(TIPParser::ForIteratorStmt *ctx) override;
+  Any visitForIteratorStmt(TIPParser::ForIteratorStmtContext *ctx) override;
 };
