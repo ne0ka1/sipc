@@ -253,7 +253,7 @@ std::string PrettyPrinter::indent() const {
 
 // New
 
-void PrettyPrinter::endvisit(ASTArrayExpr *element){
+void PrettyPrinter::endVisit(ASTArrayExpr *element){
   int size = element->getElements().size();
   std::string arrayString = "[" + joinWithDelim(visitResults, ", ", size, 1) + "]";
   visitResults.push_back(arrayString);
@@ -306,4 +306,3 @@ void PrettyPrinter::endVisit(ASTNegExpr *element) {
   visitResults.pop_back();
   visitResults.push_back("-" + arg);
 }
-

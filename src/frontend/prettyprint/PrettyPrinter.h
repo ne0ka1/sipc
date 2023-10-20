@@ -58,7 +58,6 @@ public:
 
   // SIP Expansion
   virtual void endVisit(ASTBooleanExpr *element) override;
-  virtual void endVisit(ASTAndorExpr *element) override;
   virtual void endVisit(ASTArrayExpr *element) override;
   virtual void endVisit(ASTArrayOfExpr *element) override;
   virtual void endVisit(ASTArrayAccessExpr *element) override;
@@ -70,11 +69,11 @@ public:
 
 
 
-  virtual void visit(ASTForRangeStmt *element) override;
+  virtual bool visit(ASTForRangeStmt *element) override;
   virtual void endVisit(ASTForRangeStmt *element) override;
 
-  virtual void visit(ASTForIteratorStmt *element) override;
-  virtual void endVisit(ASTForRangeStmt *element) override;
+  virtual bool visit(ASTForIteratorStmt *element) override;
+  virtual void endVisit(ASTForIteratorStmt *element) override;
 
 private:
   std::string indent() const;
