@@ -68,7 +68,6 @@ public:
   virtual void endVisit(ASTPostfixStmt *element) override;
 
 
-
   virtual bool visit(ASTForRangeStmt *element) override;
   virtual void endVisit(ASTForRangeStmt *element) override;
 

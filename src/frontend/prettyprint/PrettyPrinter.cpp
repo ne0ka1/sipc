@@ -294,7 +294,6 @@ void PrettyPrinter::endVisit(ASTPostfixStmt *element) {
   visitResults.push_back(indent() + id + element->getOp() + ";");
 }
 
-
 void PrettyPrinter::endVisit(ASTNotExpr *element) {
   std::string arg = visitResults.back();
   visitResults.pop_back();
@@ -305,4 +304,40 @@ void PrettyPrinter::endVisit(ASTNegExpr *element) {
   std::string arg = visitResults.back();
   visitResults.pop_back();
   visitResults.push_back("-" + arg);
+}
+
+void PrettyPrinter::endVisit(ASTTernaryExpr *element) {
+  std::string E3 = visitResults.back();
+  visitResults.pop_back();
+  std::string E2 = visitResults.back();
+  visitResults.pop_back();
+  std::string E1 = visitResults.back();
+  visitResults.pop_back();
+
+  visitResults.push_back(E1 + " ? " + E2 + " : " + E3);
+}
+
+bool PrettyPrinter::visit(ASTForRangeStmt *element) {
+  indentLevel++;
+  return true;
+}
+
+void PrettyPrinter::endVisit(ASTForRangeStmt *element) {
+  std::string bodyString = visitResults.back();
+  visitResults.pop_back();
+
+  visitResults.push_back("");
+}
+
+bool PrettyPrinter::visit(ASTForIteratorStmt *element) {
+  indentLevel++;
+  return true;
+}
+
+void PrettyPrinter::endVisit(ASTForIteratorStmt *element) {
+  std::string bodyString = visitResults.back();
+  visitResults.pop_back();
+
+  visitResults.push_back("");
+
 }

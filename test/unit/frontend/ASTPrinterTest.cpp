@@ -230,3 +230,82 @@ TEST_CASE("ASTPrinterTest: ASTProgram output is the hash of the source.",
   actualOutput << *ast;
   REQUIRE(expectedOutput == actualOutput.str());
 }
+
+
+TEST_CASE("ASTPrinterTest: boolean expression printers", "[ASTNodePrint]") {
+  std::stringstream stream;
+  stream << R"(
+      fun() {
+        var a,b,c,d,e;
+        a = true;
+        b = false;
+        c = true and false;
+        d = true or false;
+        e = not (not d);
+        return 0;
+      }
+    )";
+
+  std::vector<std::string> expected{"true",
+                                    "false",
+                                    "(trueandfalse)",
+                                    "(trueorfalse)",
+                                    "not not d"}; 
+
+  auto ast = ASTHelper::build_ast(stream);
+
+  auto f = ast->findFunctionByName("fun");
+
+  int i = 0;
+  int numStmts = f->getStmts().size() - 1; // skip the return
+  for (auto s : f->getStmts()) {
+    auto a = dynamic_cast<ASTAssignStmt *>(s);
+    stream = std::stringstream();
+    stream << *a->getRHS();
+    auto actual = stream.str();
+    REQUIRE(actual == expected.at(i++));
+    if (i == numStmts)
+      break;
+  }
+}
+
+TEST_CASE("ASTPrinterTest: array expression printers", "[ASTNodePrint]") {
+  std::stringstream stream;
+  stream << R"(
+      fun() {
+        var a,b,c,d,e,f,g;
+        a = [[3 of 3] of 3];
+        b = a[1];
+        c = [[1,2],[3,4],[5,6]];
+        d = c[0][1];
+        e = #a;
+        f = [];
+        g = #[];
+        return 0;
+      }
+    )";
+
+  std::vector<std::string> expected{"[[3 of 3] of 3]",
+                                    "a[1]",
+                                    "[[1, 2], [3, 4], [5, 6]]",
+                                    "c[0][1]",
+                                    "#a",
+                                    "[]",
+                                    "#[]"}; 
+
+  auto ast = ASTHelper::build_ast(stream);
+
+  auto f = ast->findFunctionByName("fun");
+
+  int i = 0;
+  int numStmts = f->getStmts().size() - 1; // skip the return
+  for (auto s : f->getStmts()) {
+    auto a = dynamic_cast<ASTAssignStmt *>(s);
+    stream = std::stringstream();
+    stream << *a->getRHS();
+    auto actual = stream.str();
+    REQUIRE(actual == expected.at(i++));
+    if (i == numStmts)
+      break;
+  }
+}
