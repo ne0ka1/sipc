@@ -275,7 +275,7 @@ TEST_CASE("PrettyPrinter: Test for ternary expression", "[PrettyPrinter]") {
   REQUIRE(ppString == expected);
 }
 
-TEST_CASE("PrettyPrinter: Test for print", "[PrettyPrinter]") {
+TEST_CASE("PrettyPrinter: Test for forloop and postfix", "[PrettyPrinter]") {
   std::stringstream stream;
   stream << R"(prog() { var x, y; for (x:3..15 by 2) x++; for (x:1..5) x--;for (y : [1, 3, 5]){y=y+1;x=x+y;}return x; })";
 
@@ -292,6 +292,107 @@ TEST_CASE("PrettyPrinter: Test for print", "[PrettyPrinter]") {
       x = (x + y);
     }
   return x;
+}
+)";
+
+  std::stringstream pp;
+  auto ast = ASTHelper::build_ast(stream);
+  PrettyPrinter::print(ast.get(), pp, ' ', 2);
+  std::string ppString = GeneralHelper::removeTrailingWhitespace(pp.str());
+  expected = GeneralHelper::removeTrailingWhitespace(expected);
+  REQUIRE(ppString == expected);
+}
+
+
+TEST_CASE("PrettyPrinter: Test for array", "[PrettyPrinter]") {
+  std::stringstream stream;
+  stream << R"(prog() { var a, b,c,d,e,f;
+                        a = [];
+                        b = [[1,2],[1,2]];
+                        c = [[3 of 3] of 4];
+                        e = #a;
+                        e = #[];
+                        e = #[3 of 3];
+                        f = b[1][1];
+                        f = [1,2][1];
+                        f = [3 of 3][1];
+                        return 0;
+                        }
+                        )";
+
+  std::string expected = R"(prog() 
+{
+  var a, b, c, d, e, f;
+  a = [];
+  b = [[1, 2], [1, 2]];
+  c = [[3 of 3] of 4];
+  e = #a;
+  e = #[];
+  e = #[3 of 3];
+  f = b[1][1];
+  f = [1, 2][1];
+  f = [3 of 3][1];
+  return 0;
+}
+)";
+
+  std::stringstream pp;
+  auto ast = ASTHelper::build_ast(stream);
+  PrettyPrinter::print(ast.get(), pp, ' ', 2);
+  std::string ppString = GeneralHelper::removeTrailingWhitespace(pp.str());
+  expected = GeneralHelper::removeTrailingWhitespace(expected);
+  REQUIRE(ppString == expected);
+}
+
+TEST_CASE("PrettyPrinter: Test for boolean", "[PrettyPrinter]") {
+  std::stringstream stream;
+  stream << R"(prog() { var a,b,c,d,e,f;
+                        a = true;
+                        b = false;
+                        c = a and b;
+                        e = a or b;
+                        f = not e;
+                        return 0;
+                        }
+                        )";
+
+  std::string expected = R"(prog() 
+{
+  var a, b, c, d, e, f;
+  a = true;
+  b = false;
+  c = (a and b);
+  e = (a or b);
+  f = not e;
+  return 0;
+}
+)";
+
+  std::stringstream pp;
+  auto ast = ASTHelper::build_ast(stream);
+  PrettyPrinter::print(ast.get(), pp, ' ', 2);
+  std::string ppString = GeneralHelper::removeTrailingWhitespace(pp.str());
+  expected = GeneralHelper::removeTrailingWhitespace(expected);
+  REQUIRE(ppString == expected);
+}
+
+TEST_CASE("PrettyPrinter: Test for negation", "[PrettyPrinter]") {
+  std::stringstream stream;
+  stream << R"(prog() { var a,b,c;
+                        a = 4;
+                        b = -a;
+                        c = -5;
+                        return 0;
+                        }
+                        )";
+
+  std::string expected = R"(prog() 
+{
+  var a, b, c;
+  a = 4;
+  b = -a;
+  c = -5;
+  return 0;
 }
 )";
 
