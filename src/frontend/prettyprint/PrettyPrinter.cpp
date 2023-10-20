@@ -249,3 +249,61 @@ void PrettyPrinter::endVisit(ASTReturnStmt *element) {
 std::string PrettyPrinter::indent() const {
   return std::string(indentLevel * indentSize, indentChar);
 }
+
+
+// New
+
+void PrettyPrinter::endvisit(ASTArrayExpr *element){
+  int size = element->getElements().size();
+  std::string arrayString = "[" + joinWithDelim(visitResults, ", ", size, 1) + "]";
+  visitResults.push_back(arrayString);
+}
+
+void PrettyPrinter::endVisit(ASTArrayOfExpr *element) {
+  std::string E1, E2 = ""; 
+  E2 = visitResults.back();
+  visitResults.pop_back();
+  E1 = visitResults.back();
+  visitResults.pop_back();
+  std::string arrayString = "[" + E1 + " of " + E2 + "]";
+  
+  visitResults.push_back(arrayString);
+}
+
+void PrettyPrinter::endVisit(ASTArrayLengthExpr *element) {
+  std::string array = visitResults.back();
+  visitResults.pop_back();
+  visitResults.push_back("#" + array);
+}
+
+void PrettyPrinter::endVisit(ASTArrayAccessExpr *element) {
+  std::string index = visitResults.back();
+  visitResults.pop_back();
+  std::string array = visitResults.back();
+  visitResults.pop_back();
+  visitResults.push_back(array + "[" + index + "]");
+}
+
+void PrettyPrinter::endVisit(ASTBooleanExpr *element) {
+  visitResults.push_back(element->getValue() ? "true" : "false");
+}
+
+void PrettyPrinter::endVisit(ASTPostfixStmt *element) {
+  std::string id = visitResults.back();
+  visitResults.pop_back();
+  visitResults.push_back(indent() + id + element->getOp() + ";");
+}
+
+
+void PrettyPrinter::endVisit(ASTNotExpr *element) {
+  std::string arg = visitResults.back();
+  visitResults.pop_back();
+  visitResults.push_back("not " + arg);
+}
+
+void PrettyPrinter::endVisit(ASTNegExpr *element) {
+  std::string arg = visitResults.back();
+  visitResults.pop_back();
+  visitResults.push_back("-" + arg);
+}
+
