@@ -255,3 +255,50 @@ main()
   expected = GeneralHelper::removeTrailingWhitespace(expected);
   REQUIRE(ppString == expected);
 }
+
+TEST_CASE("PrettyPrinter: Test for ternary expression", "[PrettyPrinter]") {
+  std::stringstream stream;
+  stream << R"(abs(x) { x = x > 0 ? x : -x; return x; })";
+
+  std::string expected = R"(abs(x) 
+{
+  x = ((x > 0) ? x : -x);
+  return x;
+}
+)";
+
+  std::stringstream pp;
+  auto ast = ASTHelper::build_ast(stream);
+  PrettyPrinter::print(ast.get(), pp, ' ', 2);
+  std::string ppString = GeneralHelper::removeTrailingWhitespace(pp.str());
+  expected = GeneralHelper::removeTrailingWhitespace(expected);
+  REQUIRE(ppString == expected);
+}
+
+TEST_CASE("PrettyPrinter: Test for print", "[PrettyPrinter]") {
+  std::stringstream stream;
+  stream << R"(prog() { var x, y; for (x:3..15 by 2) x++; for (x:1..5) x--;for (y : [1, 3, 5]){y=y+1;x=x+y;}return x; })";
+
+  std::string expected = R"(prog() 
+{
+  var x, y;
+  for (x : 3 .. 15 by 2) 
+    x++;
+  for (x : 1 .. 5)
+    x--;
+  for (y : [1, 3, 5])
+    {
+      y = (y + 1);
+      x = (x + y);
+    }
+  return x;
+}
+)";
+
+  std::stringstream pp;
+  auto ast = ASTHelper::build_ast(stream);
+  PrettyPrinter::print(ast.get(), pp, ' ', 2);
+  std::string ppString = GeneralHelper::removeTrailingWhitespace(pp.str());
+  expected = GeneralHelper::removeTrailingWhitespace(expected);
+  REQUIRE(ppString == expected);
+}
