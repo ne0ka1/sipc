@@ -195,7 +195,7 @@ auto forrange_nostep = std::make_shared<ASTForRangeStmt>(counter, begin, end, bo
 // Test Print Method
 std::stringstream nodePrintStream;
 nodePrintStream << *forrange;
-REQUIRE(nodePrintStream.str() == "for (x : 0..4 by 1){ x++; }");
+REQUIRE(nodePrintStream.str() == "for (x : 0..4 by 1) x++;");
 // Test getters
 REQUIRE(counter.get() == forrange->getCounter());
 REQUIRE(begin.get() == forrange->getBegin());
@@ -216,7 +216,7 @@ REQUIRE(contains(children, body.get()));
 // Test accept
 RecordPostPrint visitor;
 forrange->accept(&visitor);
-std::string expected[] = {"x", "0", "4", "1", "x", "x++;", "for (x : 0..4 by 1){ x++; }"};
+std::string expected[] = {"x", "0", "4", "1", "x", "x++;", "for (x : 0..4 by 1) x++;"};
 for (int i=0; i < 7; i++){
 REQUIRE(visitor.postPrintStrings[i] == expected[i]);
 }
@@ -231,7 +231,7 @@ auto foriterator = std::make_shared<ASTForIteratorStmt>(elem, fake_array, body);
 // Test Print Method
 std::stringstream nodePrintStream;
 nodePrintStream << *foriterator;
-REQUIRE(nodePrintStream.str() == "for (x : 10){ x++; }");
+REQUIRE(nodePrintStream.str() == "for (x : 10) x++;");
 // Test getters
 REQUIRE(elem.get() == foriterator->getElement());
 REQUIRE(fake_array.get() == foriterator->getArray());
@@ -247,7 +247,7 @@ REQUIRE(contains(children, body.get()));
 // Test accept
 RecordPostPrint visitor;
 foriterator->accept(&visitor);
-std::string expected[] = {"x", "10", "x", "x++;", "for (x : 10){ x++; }"};
+std::string expected[] = {"x", "10", "x", "x++;", "for (x : 10) x++;"};
 for (int i=0; i < 5; i++){
 REQUIRE(visitor.postPrintStrings[i] == expected[i]);
 }
