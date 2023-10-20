@@ -309,3 +309,68 @@ TEST_CASE("ASTPrinterTest: array expression printers", "[ASTNodePrint]") {
       break;
   }
 }
+
+
+TEST_CASE("ASTPrinterTest: negation expression printers", "[ASTNodePrint]") {
+  std::stringstream stream;
+  stream << R"(
+      fun() {
+        var a,b,c;
+        a = 4;
+        b = -a;
+        c = -5;
+        return 0;
+      }
+    )";
+
+  std::vector<std::string> expected{"4",
+                                    "-a",
+                                    "-5"}; 
+
+  auto ast = ASTHelper::build_ast(stream);
+
+  auto f = ast->findFunctionByName("fun");
+
+  int i = 0;
+  int numStmts = f->getStmts().size() - 1; // skip the return
+  for (auto s : f->getStmts()) {
+    auto a = dynamic_cast<ASTAssignStmt *>(s);
+    stream = std::stringstream();
+    stream << *a->getRHS();
+    auto actual = stream.str();
+    REQUIRE(actual == expected.at(i++));
+    if (i == numStmts)
+      break;
+  }
+}
+
+TEST_CASE("ASTPrinterTest: postfix expression printers", "[ASTNodePrint]") {
+  std::stringstream stream;
+  stream << R"(
+      fun() {
+        var a;
+        a = 4;
+        a++;
+        a--;
+        return 0;
+      }
+    )";
+
+  std::vector<std::string> expected{
+                                    "a = 4;",
+                                    "a++;",
+                                    "a--;",
+                                    "return 0;"}; 
+
+  auto ast = ASTHelper::build_ast(stream);
+
+  auto f = ast->findFunctionByName("fun");
+
+  int i = 0;
+  for (auto s : f->getStmts()) {
+    stream = std::stringstream();
+    stream << *s;
+    auto actual = stream.str();
+    REQUIRE(actual == expected.at(i++));
+  }
+}
