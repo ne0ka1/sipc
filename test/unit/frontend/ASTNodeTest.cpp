@@ -224,31 +224,39 @@ REQUIRE(visitor.postPrintStrings[i] == expected[i]);
 
 TEST_CASE("ASTNodeTest: ASTForIteratorStmt", "[ASTNode]") {
 auto elem = std::make_shared<ASTVariableExpr>("x");
-auto fake_array = std::make_shared<ASTNumberExpr>(10);
+
+
+auto one = std::make_shared<ASTNumberExpr>(1);
+auto oneNode = one.get();
+std::vector<std::shared_ptr<ASTExpr>> exprList;
+exprList.push_back(one);
+auto array =
+    std::make_shared<ASTArrayExpr>(exprList);
+
 auto body = std::make_shared<ASTPostfixStmt>("++", elem);
-auto foriterator = std::make_shared<ASTForIteratorStmt>(elem, fake_array, body);
+auto foriterator = std::make_shared<ASTForIteratorStmt>(elem, array, body);
 
 // Test Print Method
 std::stringstream nodePrintStream;
 nodePrintStream << *foriterator;
-REQUIRE(nodePrintStream.str() == "for (x : 10) x++;");
+REQUIRE(nodePrintStream.str() == "for (x : [1]) x++;");
 // Test getters
 REQUIRE(elem.get() == foriterator->getElement());
-REQUIRE(fake_array.get() == foriterator->getArray());
+REQUIRE(array.get() == foriterator->getArray());
 REQUIRE(body.get() == foriterator->getBody());
 
 // Test getChildren
 auto children = foriterator->getChildren();
 REQUIRE(children.size() == 3);
 REQUIRE(contains(children, elem.get()));
-REQUIRE(contains(children, fake_array.get()));
+REQUIRE(contains(children, array.get()));
 REQUIRE(contains(children, body.get()));
 
 // Test accept
 RecordPostPrint visitor;
 foriterator->accept(&visitor);
-std::string expected[] = {"x", "10", "x", "x++;", "for (x : 10) x++;"};
-for (int i=0; i < 5; i++){
+std::string expected[] = {"x", "1", "[1]", "x", "x++;", "for (x : [1]) x++;"};
+for (int i=0; i < 6; i++){
 REQUIRE(visitor.postPrintStrings[i] == expected[i]);
 }
 }
