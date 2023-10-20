@@ -58,6 +58,12 @@ std::string ASTBuilder::opString(int op) {
   case TIPParser::KOF:
     opStr = "of";
     break;
+  case TIPParser::PLUSPLUS:
+    opStr = "++"
+    break;
+  case TIPParser::MINUSMINUS:
+    opStr = "--"
+    break;  
   default:
     throw std::runtime_error(
         "unknown operator :" +
@@ -234,6 +240,19 @@ Any ASTBuilder::visitArrayOfExpr(TIPParser::ArrayOfExprContext *ctx){
                              ctx->getStart()->getCharPositionInLine());
     return "";
 }
+
+Any ASTBuilder::visitPostfixStmt(TIPParser::PostfixStmtContext *ctx) {
+    auto arg = visit(ctx->expr());
+    auto opStr = opString(ctx->op->getType());
+    // Create an AST node for the postfix statement
+    visitedExpr = std::make_shared<ASTPostfixStmt>(opStr, arg);
+    LOG_S(1) << "Built AST node " << *visitedExpr;
+    // Set source location
+    visitedExpr->setLocation(ctx->getStart()->getLine(),
+                             ctx->getStart()->getCharPositionInLine());
+    return "";
+}
+
 
 Any ASTBuilder::visitArrayAccessExpr(TIPParser::ArrayAccessExprContext *ctx) {
     // First, visit the array expression
