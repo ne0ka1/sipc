@@ -6,6 +6,7 @@
 #include "TipRecord.h"
 #include "TipRef.h"
 #include "TipVar.h"
+#include "TipBool.h"
 
 TypeConstraintVisitor::TypeConstraintVisitor(
     SymbolTable *st, std::shared_ptr<ConstraintHandler> handler)
@@ -226,21 +227,21 @@ void TypeConstraintVisitor::endVisit(ASTAssignStmt *element) {
 /*! \brief Type constraints for while loop.
  *
  * Type rules for "while (E) S":
- *   [[E]] = int
+ *   [[E]] = bool
  */
 void TypeConstraintVisitor::endVisit(ASTWhileStmt *element) {
   constraintHandler->handle(astToVar(element->getCondition()),
-                            std::make_shared<TipInt>());
+                            std::make_shared<TipBool>());
 }
 
 /*! \brief Type constraints for if statement.
  *
  * Type rules for "if (E) S1 else S2":
- *   [[E]] = int
+ *   [[E]] = bool
  */
 void TypeConstraintVisitor::endVisit(ASTIfStmt *element) {
   constraintHandler->handle(astToVar(element->getCondition()),
-                            std::make_shared<TipInt>());
+                            std::make_shared<TipBool>());
 }
 
 /*! \brief Type constraints for output statement.
@@ -318,7 +319,7 @@ void TypeConstraintVisitor::endVisit(ASTErrorStmt *element) {
  * [[E]] = bool 
  */
 void TypeConstraintVisitor::endVisit(ASTBooleanExpr * element) {
-    constraintHandler->handle(astToVar(element), std::make_shared<TipBoolean>());
+    constraintHandler->handle(astToVar(element), std::make_shared<TipBool>());
 }
 
 
@@ -394,8 +395,8 @@ void TypeConstraintVisitor::endVisit(ASTArrayLengthExpr * element) {
  *   [[E1]] = bool
  */
 void TypeConstraintVisitor::endVisit(ASTNotExpr * element) {
-  constraintHandler->handle(astToVar(element->getArg()),std::make_shared<TipBoolean>());
-  constraintHandler->handle(astToVar(element),std::make_shared<TipBoolean>());
+  constraintHandler->handle(astToVar(element->getArg()),std::make_shared<TipBool>());
+  constraintHandler->handle(astToVar(element),std::make_shared<TipBool>());
 }
 
 /*! \brief Type constraints for neg expression.
@@ -411,9 +412,8 @@ void TypeConstraintVisitor::endVisit(ASTNegExpr * element) {
 
 /*! \brief Type constraints for postfix statement.
  * Type rules for "E OP"::
- * [[E OP]] = [[E]] = int
+ * [[E]] = int
  */
 void TypeConstraintVisitor::endVisit(ASTPostfixStmt *element) {
   constraintHandler->handle(astToVar(element->getArg()), std::make_shared<TipInt>());
-  constraintHandler->handle(astToVar(element), std::make_shared<TipInt>());
 }

@@ -5,13 +5,13 @@
 #include <string>
 
 /*!
- * \class TipBoolean
+ * \class TipBool
  *
- * \brief A proper type representing a boolean expression
+ * \brief A proper type representing a bool
  */
-class TipBoolean: public TipCons {
+class TipBool: public TipCons {
 public:
-    TipBoolean();
+    TipBool();
 
     bool operator==(const TipType& other) const override;
     bool operator!=(const TipType& other) const override;
