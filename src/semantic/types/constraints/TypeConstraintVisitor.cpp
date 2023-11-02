@@ -7,6 +7,7 @@
 #include "TipRef.h"
 #include "TipVar.h"
 #include "TipBool.h"
+#include "TipArray.h"
 
 TypeConstraintVisitor::TypeConstraintVisitor(
     SymbolTable *st, std::shared_ptr<ConstraintHandler> handler)
@@ -417,3 +418,38 @@ void TypeConstraintVisitor::endVisit(ASTNegExpr * element) {
 void TypeConstraintVisitor::endVisit(ASTPostfixStmt *element) {
   constraintHandler->handle(astToVar(element->getArg()), std::make_shared<TipInt>());
 }
+
+/*! \brief Type constraints for iterator-style for loop.
+ *
+ * Type rules for "E1 ? E2 : E3":
+ * [[E1]] = bool
+ * [[E2]] = [[E3]]
+ */
+void TypeConstraintVisitor::endVisit(ASTTernaryStmt *element) {
+  constraintHandler->handle(astToVar(element->getCondition()), std::make_shared<TipBool>());
+  constraintHandler->handle(astToVar(element->getThen(), element->getElse()));
+}
+
+/*! \brief Type constraints for range-style for loop.
+ *
+ * Type rules for "for (E1:E2..E3 (by E4)) S":
+ *   [[E1]] = [[E2]] = [[E3]] = [[E4]] = int
+ */
+void TypeConstraintVisitor::endVisit(ASTForRangeStmt *element) {
+  constraintHandler->handle(astToVar(element->getCounter()), std::make_shared<TipInt>());
+  constraintHandler->handle(astToVar(element->getBegin()), std::make_shared<TipInt>());
+  constraintHandler->handle(astToVar(element->getEnd()), std::make_shared<TipInt>());
+  if (element->getStep() != nullptr) {
+  constraintHandler->handle(astToVar(element->getStep()), std::make_shared<TipInt>());
+  }
+}
+
+/*! \brief Type constraints for iterator-style for loop.
+ *
+ * Type rules for "for (E1 : E2) S":
+ * [[E2]] = array of [[E1]]
+ */
+void TypeConstraintVisitor::endVisit(ASTForIteratorStmt *element) {
+  elemType = astToVar(element->getArray().at(0));
+  constraintHandler->handle(astToVar(element->getElement()), elemType);
+                            constraintHandler->handle(astToVar(element->getArray()), std::make_shared<TipArray>(elemType));}
