@@ -453,6 +453,5 @@ void TypeConstraintVisitor::endVisit(ASTForRangeStmt *element) {
  * [[E2]] = array of [[E1]]
  */
 void TypeConstraintVisitor::endVisit(ASTForIteratorStmt *element) {
-  constraintHandler->handle(astToVar(element->getElement()), std::make_shared<TipAlpha>(element->getElement()));
-  constraintHandler->handle(astToVar(element->getArray()), std::make_shared<TipArray>(astToVar(element->getArray())));
+  constraintHandler->handle(astToVar(element->getArray()), std::make_shared<TipArray>(astToVar(element->getElement())));
   }

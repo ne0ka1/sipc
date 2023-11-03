@@ -563,3 +563,121 @@ TEST_CASE("TypeConstraintVisitor: Neg type test", "[TypeConstraintVisitor]") {
 //     REQUIRE(*unifier.inferred(aType) == *arrayType);
 //   }
 // }
+
+TEST_CASE("TypeConstraintVisitor: ternary expression test", "[TypeConstraintVisitor]") {
+
+  SECTION("Test ternary expression") {
+    std::stringstream program;
+    program << R"(
+            // x is bool; y is int
+            short() {
+              var x, y;
+              return x ? 1 : y;
+            }
+         )";
+
+    auto ast = ASTHelper::build_ast(program);
+    auto symbols = SymbolTable::build(ast.get());
+
+    TypeConstraintCollectVisitor visitor(symbols.get());
+    ast->accept(&visitor);
+
+    Unifier unifier(visitor.getCollectedConstraints());
+    REQUIRE_NOTHROW(unifier.solve());
+
+    // Expected types
+    auto intType = std::make_shared<TipInt>();
+    auto boolType = std::make_shared<TipBool>();
+
+    auto fDecl = symbols->getFunction("short");
+
+    auto xType = std::make_shared<TipVar>(symbols->getLocal("x", fDecl));
+    REQUIRE(*unifier.inferred(xType) == *boolType);
+
+    auto yType = std::make_shared<TipVar>(symbols->getLocal("y", fDecl));
+    REQUIRE(*unifier.inferred(yType) == *intType);
+  }
+}
+
+TEST_CASE("TypeConstraintVisitor: for statement and postfix test", "[TypeConstraintVisitor]") {
+
+  SECTION("Test for statement, postfix expression") {
+    std::stringstream program;
+    program << R"(
+            // x is bool; y is int
+            // i, j, k are int
+            short() {
+              var x, y, i, j, k;
+              for (x: [true, false]){y++;}
+              for (i: 1..j by k){i--;}
+              return true;
+            }
+         )";
+
+    auto ast = ASTHelper::build_ast(program);
+    auto symbols = SymbolTable::build(ast.get());
+
+    TypeConstraintCollectVisitor visitor(symbols.get());
+    ast->accept(&visitor);
+
+    Unifier unifier(visitor.getCollectedConstraints());
+    REQUIRE_NOTHROW(unifier.solve());
+
+    // Expected types
+    auto intType = std::make_shared<TipInt>();
+    auto boolType = std::make_shared<TipBool>();
+
+    auto fDecl = symbols->getFunction("short");
+
+    auto xType = std::make_shared<TipVar>(symbols->getLocal("x", fDecl));
+    REQUIRE(*unifier.inferred(xType) == *boolType);
+
+    auto yType = std::make_shared<TipVar>(symbols->getLocal("y", fDecl));
+    REQUIRE(*unifier.inferred(yType) == *intType);
+
+    auto iType = std::make_shared<TipVar>(symbols->getLocal("i", fDecl));
+    REQUIRE(*unifier.inferred(yType) == *intType);
+
+    auto jType = std::make_shared<TipVar>(symbols->getLocal("j", fDecl));
+    REQUIRE(*unifier.inferred(yType) == *intType);
+
+    auto kType = std::make_shared<TipVar>(symbols->getLocal("k", fDecl));
+    REQUIRE(*unifier.inferred(yType) == *intType);
+  }
+}
+
+TEST_CASE("TypeConstraintVisitor: while, if statement test", "[TypeConstraintVisitor]") {
+
+  SECTION("Test while and if statement") {
+    std::stringstream program;
+    program << R"(
+            // x, y are bool
+            short() {
+              var x, y, z;
+              while (x) {z = z + 1;}
+              if (y) {z = z - 1;}
+              return z;
+            }
+         )";
+
+    auto ast = ASTHelper::build_ast(program);
+    auto symbols = SymbolTable::build(ast.get());
+
+    TypeConstraintCollectVisitor visitor(symbols.get());
+    ast->accept(&visitor);
+
+    Unifier unifier(visitor.getCollectedConstraints());
+    REQUIRE_NOTHROW(unifier.solve());
+
+    // Expected types
+    auto boolType = std::make_shared<TipBool>();
+
+    auto fDecl = symbols->getFunction("short");
+
+    auto xType = std::make_shared<TipVar>(symbols->getLocal("x", fDecl));
+    REQUIRE(*unifier.inferred(xType) == *boolType);
+
+    auto yType = std::make_shared<TipVar>(symbols->getLocal("y", fDecl));
+    REQUIRE(*unifier.inferred(yType) == *boolType);
+  }
+}
