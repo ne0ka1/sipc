@@ -58,17 +58,17 @@ public:
 
 
     // Extension 
-    void endVisit(ASTArrayExpr * element) override;
-    void endvisit(ASTArrayAccessExpr * element) override;
-    void endVisit(ASTArrayLengthExpr * element) override;
-    void endVisit(ASTArrayOfExpr * element) override;
-    void endvisit(ASTBooleanExpr * element) override;
-    void endVisit(ASTForIteratorStmt * element) override;
-    void endVisit(ASTForRangeStmt * element) override;
-    void endVisit(ASTNegExpr * element) override;
-    void endVisit(ASTNotExpr * element) override;
-    void endVisit(ASTPostfixStmt * element) override;
-    void endVisit(ASTTernaryExpr * element) override;
+    void endVisit(ASTArrayExpr *element) override;
+    void endVisit(ASTArrayAccessExpr *element) override;
+    void endVisit(ASTArrayLengthExpr *element) override;
+    void endVisit(ASTArrayOfExpr *element) override;
+    void endVisit(ASTBooleanExpr *element) override;
+    void endVisit(ASTForIteratorStmt *element) override;
+    void endVisit(ASTForRangeStmt *element) override;
+    void endVisit(ASTNegExpr *element) override;
+    void endVisit(ASTNotExpr *element) override;
+    void endVisit(ASTPostfixStmt *element) override;
+    void endVisit(ASTTernaryExpr *element) override;
 
 protected:
   std::shared_ptr<ConstraintHandler> constraintHandler;

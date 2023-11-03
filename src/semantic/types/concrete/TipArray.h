@@ -14,6 +14,8 @@ public:
   TipArray() = delete;
   TipArray(std::shared_ptr<TipType> array);
 
+  std::vector<std::shared_ptr<TipType>> getElements() const;
+
   bool operator==(const TipType &other) const override;
   bool operator!=(const TipType &other) const override;
 

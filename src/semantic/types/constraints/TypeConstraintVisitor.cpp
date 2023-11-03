@@ -1,13 +1,13 @@
 #include "TypeConstraintVisitor.h"
 #include "TipAbsentField.h"
 #include "TipAlpha.h"
+#include "TipArray.h"
+#include "TipBool.h"
 #include "TipFunction.h"
 #include "TipInt.h"
 #include "TipRecord.h"
 #include "TipRef.h"
 #include "TipVar.h"
-#include "TipBool.h"
-#include "TipArray.h"
 
 TypeConstraintVisitor::TypeConstraintVisitor(
     SymbolTable *st, std::shared_ptr<ConstraintHandler> handler)
@@ -114,7 +114,7 @@ void TypeConstraintVisitor::endVisit(ASTBinaryExpr *element) {
     // result type is integer
     constraintHandler->handle(astToVar(element), intType);
   }
-  // operands and result are bool, LHS and RHS are int
+  // operands and result are bool, LHS and RHS are Bool
   else if(op == ">" || op == ">=" || op == "<" || op == "<=") {
     constraintHandler->handle(astToVar(element->getLeft()), intType);
     constraintHandler->handle(astToVar(element->getRight()), intType);
@@ -319,7 +319,7 @@ void TypeConstraintVisitor::endVisit(ASTErrorStmt *element) {
  * Type rules for "E":
  * [[E]] = bool 
  */
-void TypeConstraintVisitor::endVisit(ASTBooleanExpr * element) {
+void TypeConstraintVisitor::endVisit(ASTBooleanExpr * element){
     constraintHandler->handle(astToVar(element), std::make_shared<TipBool>());
 }
 
@@ -330,7 +330,7 @@ void TypeConstraintVisitor::endVisit(ASTBooleanExpr * element) {
  *     [[E1]] = [[En]]
  *     [[ [E1, ..., En] ]] = array of [[E1]]
  */
-void TypeConstraintVisitor::endVisit(ASTArrayExpr * element) {
+void TypeConstraintVisitor::endVisit(ASTArrayExpr *element) {
     std::shared_ptr<TipType> alphaType;
     // empty array
     if (element->getElements().size() == 0) {
@@ -355,12 +355,15 @@ void TypeConstraintVisitor::endVisit(ASTArrayExpr * element) {
  *    [[E1]] = int
  *    [[ [E1 of E2] ]] = array of [[E2]]
  */
-void TypeConstraintVisitor::endVisit(ASTArrayOfExpr * element) {
+void TypeConstraintVisitor::endVisit(ASTArrayOfExpr *element) {
+  if (element->getElements().size() == 2){
     auto E1 = element->getElements().at(0);
     auto E2 = element->getElements().at(1);
+    
     constraintHandler->handle(astToVar(E1),
                               std::make_shared<TipInt>());
     constraintHandler->handle(astToVar(element), std::make_shared<TipArray>(astToVar(E2)));
+  }
 }
 
 
@@ -384,7 +387,7 @@ void TypeConstraintVisitor::endVisit(ASTArrayAccessExpr *element) {
  *    [[#E]] = int
  */
 void TypeConstraintVisitor::endVisit(ASTArrayLengthExpr * element) {
-  auto alphaType = std::make_shared<TipAlpha>(element->getArray())
+  auto alphaType = std::make_shared<TipAlpha>(element->getArray());
   constraintHandler->handle(astToVar(element->getArray()),std::make_shared<TipArray>(alphaType));
   constraintHandler->handle(astToVar(element), std::make_shared<TipInt>());
 }
@@ -425,9 +428,9 @@ void TypeConstraintVisitor::endVisit(ASTPostfixStmt *element) {
  * [[E1]] = bool
  * [[E2]] = [[E3]]
  */
-void TypeConstraintVisitor::endVisit(ASTTernaryStmt *element) {
+void TypeConstraintVisitor::endVisit(ASTTernaryExpr *element) {
   constraintHandler->handle(astToVar(element->getCondition()), std::make_shared<TipBool>());
-  constraintHandler->handle(astToVar(element->getThen(), element->getElse()));
+  constraintHandler->handle(astToVar(element->getThen()), astToVar(element->getElse()));
 }
 
 /*! \brief Type constraints for range-style for loop.
@@ -450,6 +453,6 @@ void TypeConstraintVisitor::endVisit(ASTForRangeStmt *element) {
  * [[E2]] = array of [[E1]]
  */
 void TypeConstraintVisitor::endVisit(ASTForIteratorStmt *element) {
-  elemType = astToVar(element->getArray().at(0));
-  constraintHandler->handle(astToVar(element->getElement()), elemType);
-                            constraintHandler->handle(astToVar(element->getArray()), std::make_shared<TipArray>(elemType));}
+  constraintHandler->handle(astToVar(element->getElement()), std::make_shared<TipAlpha>(element->getElement()));
+  constraintHandler->handle(astToVar(element->getArray()), std::make_shared<TipArray>(astToVar(element->getArray())));
+  }

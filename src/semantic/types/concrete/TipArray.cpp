@@ -12,7 +12,13 @@ bool TipArray::operator==(const TipType &other) const {
     return false;
   }
 
-  return *arguments.front() == *otherTipArr->arguments.front();
+  return *arguments.front() == *otherTipArray->arguments.front();
+}
+
+
+std::vector<std::shared_ptr<TipType>> TipArray::getElements() const {
+    std::vector<std::shared_ptr<TipType>> elements(arguments.begin(), arguments.end());
+    return elements;
 }
 
 bool TipArray::operator!=(const TipType &other) const {

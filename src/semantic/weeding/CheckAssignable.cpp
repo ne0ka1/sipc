@@ -10,8 +10,15 @@ namespace {
 
 // Return true if expression has an l-value
 bool isAssignable(ASTExpr *e) {
-  if (dynamic_cast<ASTVariableExpr *>(e))
+  if (dynamic_cast<ASTVariableExpr *>(e)) {
     return true;
+  }
+  // a[... is inherently a l-value because it refers to a memory location. 
+  // there is no need to check the base of the array against other ASTNode because 
+  // accessing any valid index within an array always produces an l-value. a[... is an array
+  if (dynamic_cast<ASTArrayAccessExpr *>(e)) {
+    return true;
+  }
   if (dynamic_cast<ASTAccessExpr *>(e)) {
     ASTAccessExpr *access = dynamic_cast<ASTAccessExpr *>(e);
     if (dynamic_cast<ASTVariableExpr *>(access->getRecord())) {
@@ -22,14 +29,11 @@ bool isAssignable(ASTExpr *e) {
       return false;
     }
   }
-  // a[... is inherently a l-value because it refers to a memory location. 
-  // there is no need to check the base of the array against other ASTNode because 
-  // accessing any valid index within an array always produces an l-value. a[... is an array
-  if (dynamic_cast<ASTArrayAccessExpr> *(e)){ return true; }
-    return false;
+  return false;
 }
 
 } // namespace
+
 
 void CheckAssignable::endVisit(ASTAssignStmt *element) {
   LOG_S(1) << "Checking assignability of " << *element;
