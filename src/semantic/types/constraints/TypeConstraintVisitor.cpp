@@ -96,7 +96,7 @@ void TypeConstraintVisitor::endVisit(ASTNumberExpr *element) {
  * Type rules for "E1 op E2" if op is relational, return boolean:
  *   [[E1]] = [[E2]] = int
  *   [[E1 op E2]] = bool
- * Type rules for "E1 op E2" if op is boolean, return boolean:
+ * Type rules for "E1 op E2" if op is logical, return boolean:
  *   [[E1]] = [[E2]] = [[E1 op E2]] = bool 
  * Type rules for "E1 op E2" if op is an equality operator, return boolean:
  *    [[E1 op E2]] = bool
