@@ -605,11 +605,11 @@ TEST_CASE("TypeConstraintVisitor: for statement and postfix test", "[TypeConstra
     std::stringstream program;
     program << R"(
             // x is bool; y is int
-            // i, j, k are int
+            // i, j, k, l are int
             short() {
-              var x, y, i, j, k;
+              var x, y, i, j, k, l;
               for (x: [true, false]){y++;}
-              for (i: 1..j by k){i--;}
+              for (i: j..k by l){i--;}
               return true;
             }
          )";
@@ -636,13 +636,16 @@ TEST_CASE("TypeConstraintVisitor: for statement and postfix test", "[TypeConstra
     REQUIRE(*unifier.inferred(yType) == *intType);
 
     auto iType = std::make_shared<TipVar>(symbols->getLocal("i", fDecl));
-    REQUIRE(*unifier.inferred(yType) == *intType);
+    REQUIRE(*unifier.inferred(iType) == *intType);
 
     auto jType = std::make_shared<TipVar>(symbols->getLocal("j", fDecl));
-    REQUIRE(*unifier.inferred(yType) == *intType);
+    REQUIRE(*unifier.inferred(jType) == *intType);
 
     auto kType = std::make_shared<TipVar>(symbols->getLocal("k", fDecl));
-    REQUIRE(*unifier.inferred(yType) == *intType);
+    REQUIRE(*unifier.inferred(kType) == *intType);
+
+    auto lType = std::make_shared<TipVar>(symbols->getLocal("l", fDecl));
+    REQUIRE(*unifier.inferred(lType) == *intType);
   }
 }
 
