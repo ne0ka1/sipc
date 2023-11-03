@@ -334,7 +334,6 @@ void TypeConstraintVisitor::endVisit(ASTArrayExpr *element) {
     std::shared_ptr<TipType> alphaType;
     // empty array
     if (element->getElements().size() == 0) {
-      alphaType = std::make_shared<TipAlpha>(element);
       constraintHandler->handle(astToVar(element),
                                 std::make_shared<TipArray>());
     }

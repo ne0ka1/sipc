@@ -604,6 +604,24 @@ TEST_CASE("TypeConstraintVisitor: ternary expression test", "[TypeConstraintVisi
 
     auto yType = std::make_shared<TipVar>(symbols->getLocal("y", fDecl));
     REQUIRE(*unifier.inferred(yType) == *intType);
+    // Boolean are equal 
+    TipBool boolean;
+    TipBool boolean2;
+    REQUIRE(boolean == boolean2);
+
+    // Boolean are not equal 
+    TipBool boolean3;
+    TipArray fakeBoolean;
+    REQUIRE_FALSE(boolean3 == fakeBoolean);
+
+    // Print
+    TipBool boolean4;
+    std::stringstream stream;
+    stream << boolean4;
+    REQUIRE("bool" == stream.str());
+
+
+    
 }
 
 TEST_CASE("TypeConstraintVisitor: for statement and postfix test", "[TypeConstraintVisitor]") {
@@ -744,6 +762,36 @@ TEST_CASE("TypeConstraintVisitor: Array type test", "[TypeConstraintVisitor]") {
 
         auto cType = std::make_shared<TipVar>(symbols->getLocal("c",fDecl));
         REQUIRE(*unifier.inferred(cType) == *arrIntType);
+
+        // Array1 == Array2
+        auto term = std::make_shared<TipInt>();
+        TipArray Array(term);
+
+        auto term2 = std::make_shared<TipInt>();
+        TipArray Array2(term2);
+        REQUIRE(Array == Array2);
+
+        // Array != Array3
+        auto term3 = std::make_shared<TipBool>();
+        TipArray Array3(term3);
+        REQUIRE_FALSE(Array == Array3);
+
+        // Empty arrays of arrays are equal
+        auto term4 = std::make_shared<TipArray>();
+        TipArray Array4(term4);
+        auto term5 = std::make_shared<TipArray>();
+        TipArray Array5(term5);
+        REQUIRE(Array4 == Array5);
+
+        // print
+        auto term6 = std::make_shared<TipInt>();
+        TipArray Array7(term6);
+        auto expectedValue = "[] int";
+        std::stringstream ss;
+        ss << Array7;
+        REQUIRE(expectedValue == ss.str());
+
+
 }
 }
 
