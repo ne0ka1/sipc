@@ -2,17 +2,30 @@
 #include "TipTypeVisitor.h"
 #include <sstream>
 
+TipArray::TipArray() {}
+
 TipArray::TipArray(std::shared_ptr<TipType> array)
     : TipCons(std::move(std::vector<std::shared_ptr<TipType>>{array})) {
 }
 
 bool TipArray::operator==(const TipType &other) const {
-  auto otherTipArray = dynamic_cast<const TipArray *>(&other);
+  const auto otherTipArray = dynamic_cast<const TipArray *>(&other);
   if (!otherTipArray) {
-    return false;
+    return false; 
   }
 
-  return *arguments.front() == *otherTipArray->arguments.front();
+  // if empty
+  if (arguments.empty() && otherTipArray->arguments.empty()) {
+    return true;
+  }
+
+  // If both are not empty
+  if (!arguments.empty() && !otherTipArray->arguments.empty()) {
+    return *arguments.front() == *otherTipArray->arguments.front();
+  }
+
+  // If one is empty
+  return false;
 }
 
 bool TipArray::operator!=(const TipType &other) const {
@@ -29,6 +42,10 @@ void TipArray::accept(TipTypeVisitor *visitor) {
 }
 
 std::ostream &TipArray::print(std::ostream &out) const {
-  out << "[]" << *arguments.front();
+  if (arguments.empty()) {
+    out << "[] ";
+  } else {
+    out << "[] " << *arguments.front();
+  }
   return out;
 }

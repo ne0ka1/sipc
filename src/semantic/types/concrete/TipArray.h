@@ -11,7 +11,7 @@
 
 class TipArray : public TipCons {
 public:
-  TipArray() = delete;
+  TipArray();
   TipArray(std::shared_ptr<TipType> array);
 
   bool operator==(const TipType &other) const override;
