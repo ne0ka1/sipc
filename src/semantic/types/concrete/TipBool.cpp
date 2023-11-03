@@ -19,7 +19,7 @@ bool TipBool::operator!=(const TipType &other) const {
 }
 
 std::ostream &TipBool::print(std::ostream &out) const {
-    out << std::string("boolean");
+    out << std::string("bool");
     return out;
 } 
 
