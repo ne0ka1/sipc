@@ -432,14 +432,18 @@ main() {
 
 TEST_CASE("TypeConstraintVisitor: Bool type test", "[TypeConstraintVisitor]") {
 
-  SECTION("Test type-bool") {
+  SECTION("Test type-bool (and, or, not, true, false)") {
     std::stringstream program;
     program << R"(
-            // x is bool; short is () -> bool
+            // all vars are bool; short is () -> bool
             short() {
-              var x;
-              x = true;
-              return x;
+              var a, b, c, d, e;
+              a = true;
+              b = false;
+              c = not a;
+              d = a or b;
+              e = a and b and c and d;
+              return e;
             }
          )";
 
@@ -455,8 +459,58 @@ TEST_CASE("TypeConstraintVisitor: Bool type test", "[TypeConstraintVisitor]") {
     // Expected types
     std::vector<std::shared_ptr<TipType>> emptyParams;
     auto boolType = std::make_shared<TipBool>();
-    auto funRetInt = std::make_shared<TipFunction>(emptyParams, boolType);
-    auto ptrToInt = std::make_shared<TipRef>(boolType);
+    auto funRetBool = std::make_shared<TipFunction>(emptyParams, boolType);
+
+    auto fDecl = symbols->getFunction("short");
+    auto fType = std::make_shared<TipVar>(fDecl);
+
+    REQUIRE(*unifier.inferred(fType) == *funRetBool);
+
+    auto aType = std::make_shared<TipVar>(symbols->getLocal("a", fDecl));
+    REQUIRE(*unifier.inferred(aType) == *boolType);
+
+    auto bType = std::make_shared<TipVar>(symbols->getLocal("b", fDecl));
+    REQUIRE(*unifier.inferred(bType) == *boolType);
+
+    auto cType = std::make_shared<TipVar>(symbols->getLocal("c", fDecl));
+    REQUIRE(*unifier.inferred(cType) == *boolType);
+
+    auto dType = std::make_shared<TipVar>(symbols->getLocal("d", fDecl));
+    REQUIRE(*unifier.inferred(dType) == *boolType);
+
+    auto eType = std::make_shared<TipVar>(symbols->getLocal("e", fDecl));
+    REQUIRE(*unifier.inferred(eType) == *boolType);
+  }
+}
+
+
+TEST_CASE("TypeConstraintVisitor: Neg type test", "[TypeConstraintVisitor]") {
+
+  SECTION("Test type-int") {
+    std::stringstream program;
+    program << R"(
+            // all vars are int; short is () -> int
+            short() {
+              var x, y;
+              x = -4;
+              y = -x;
+              return y;
+            }
+         )";
+
+    auto ast = ASTHelper::build_ast(program);
+    auto symbols = SymbolTable::build(ast.get());
+
+    TypeConstraintCollectVisitor visitor(symbols.get());
+    ast->accept(&visitor);
+
+    Unifier unifier(visitor.getCollectedConstraints());
+    REQUIRE_NOTHROW(unifier.solve());
+
+    // Expected types
+    std::vector<std::shared_ptr<TipType>> emptyParams;
+    auto intType = std::make_shared<TipInt>();
+    auto funRetInt = std::make_shared<TipFunction>(emptyParams, intType);
 
     auto fDecl = symbols->getFunction("short");
     auto fType = std::make_shared<TipVar>(fDecl);
@@ -464,7 +518,48 @@ TEST_CASE("TypeConstraintVisitor: Bool type test", "[TypeConstraintVisitor]") {
     REQUIRE(*unifier.inferred(fType) == *funRetInt);
 
     auto xType = std::make_shared<TipVar>(symbols->getLocal("x", fDecl));
-    REQUIRE(*unifier.inferred(xType) == *boolType);
+    REQUIRE(*unifier.inferred(xType) == *intType);
+
+    auto yType = std::make_shared<TipVar>(symbols->getLocal("y", fDecl));
+    REQUIRE(*unifier.inferred(yType) == *intType);
   }
 }
 
+
+// TEST_CASE("TypeConstraintVisitor: Array type test", "[TypeConstraintVisitor]") {
+
+//   SECTION("Test type-array") {
+//     std::stringstream program;
+//     program << R"(
+//             // all e is an int, the rest are array; short is () -> array
+//             short() {
+//               var a;
+//               a = [];
+//               return a;
+//             }
+//          )";
+
+//     auto ast = ASTHelper::build_ast(program);
+//     auto symbols = SymbolTable::build(ast.get());
+
+//     TypeConstraintCollectVisitor visitor(symbols.get());
+//     ast->accept(&visitor);
+
+//     Unifier unifier(visitor.getCollectedConstraints());
+//     REQUIRE_NOTHROW(unifier.solve());
+
+//     // Expected types
+//     std::vector<std::shared_ptr<TipType>> emptyParams;
+//     auto arrayType = std::make_shared<TipArray>();
+//     auto intType = std::make_shared<TipInt>();
+//     auto funRetArray = std::make_shared<TipFunction>(emptyParams, arrayType);
+
+//     auto fDecl = symbols->getFunction("short");
+//     auto fType = std::make_shared<TipVar>(fDecl);
+
+//     REQUIRE(*unifier.inferred(fType) == *funRetArray);
+
+//     auto aType = std::make_shared<TipVar>(symbols->getLocal("a", fDecl));
+//     REQUIRE(*unifier.inferred(aType) == *arrayType);
+//   }
+// }
