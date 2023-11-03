@@ -56,6 +56,20 @@ public:
   void endVisit(ASTRefExpr *element) override;
   void endVisit(ASTWhileStmt *element) override;
 
+
+    // Extension 
+    void endVisit(ASTArrayExpr *element) override;
+    void endVisit(ASTArrayAccessExpr *element) override;
+    void endVisit(ASTArrayLengthExpr *element) override;
+    void endVisit(ASTArrayOfExpr *element) override;
+    void endVisit(ASTBooleanExpr *element) override;
+    void endVisit(ASTForIteratorStmt *element) override;
+    void endVisit(ASTForRangeStmt *element) override;
+    void endVisit(ASTNegExpr *element) override;
+    void endVisit(ASTNotExpr *element) override;
+    void endVisit(ASTPostfixStmt *element) override;
+    void endVisit(ASTTernaryExpr *element) override;
+
 protected:
   std::shared_ptr<ConstraintHandler> constraintHandler;
   SymbolTable *symbolTable;

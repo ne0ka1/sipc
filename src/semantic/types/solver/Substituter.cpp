@@ -95,3 +95,14 @@ void Substituter::endVisit(TipAlpha *element) {
         std::make_shared<TipAlpha>(element->getNode(), element->getName()));
   }
 }
+ // New 
+void Substituter::endVisit(TipBool *element) {
+  visitedTypes.push_back(std::make_shared<TipBool>());
+}
+
+void Substituter::endVisit(TipArray *element) {
+  auto arrayType = visitedTypes.back();
+  visitedTypes.pop_back();
+  visitedTypes.push_back(std::make_shared<TipArray>(arrayType));
+}
+
