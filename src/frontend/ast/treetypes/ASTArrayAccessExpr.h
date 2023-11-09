@@ -17,7 +17,7 @@ public:
   ASTExpr *getArray() const { return ARRAY.get(); }
   ASTExpr *getIndex() const { return IDX.get(); }
   void accept(ASTVisitor *visitor) override;
-  llvm::Value *codegen() override { return nullptr; };
+  llvm::Value *codegen() override;
 
 protected:
   std::ostream &print(std::ostream &out) const override;

@@ -13,7 +13,7 @@ public:
     ASTNegExpr(std::shared_ptr<ASTExpr> VALUE) : VALUE(VALUE) {}
     ASTExpr *getArg() const { return VALUE.get(); }
     void accept(ASTVisitor *visitor) override;
-    llvm::Value *codegen() override { return nullptr; };
+    llvm::Value *codegen() override;
 protected:
     std::ostream& print(std::ostream &out) const override;
 };

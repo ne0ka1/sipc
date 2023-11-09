@@ -1108,3 +1108,91 @@ llvm::Value *ASTReturnStmt::codegen() {
   Value *argVal = getArg()->codegen();
   return Builder.CreateRet(argVal);
 } // LCOV_EXCL_LINE
+
+
+llvm::Value *ASTArrayAccessExpr::codegen() {
+  return nullptr;
+
+}
+
+llvm::Value *ASTArrayExpr::codegen() {
+  return nullptr;
+
+}
+
+llvm::Value *ASTArrayLengthExpr::codegen() {
+  LOG_S(1) << "Generating code for " << *this;
+
+  // Get the array
+  lValueGen = true;
+  Value *array = getArray()->codegen();
+  lValueGen = false;
+
+  if (array == nullptr) {
+    throw InternalError("failed to generate bitcode for the array of the "
+                        "array length expression");
+  }
+
+  // Load address of array
+  Value *arrayAddr = Builder.CreateIntToPtr(
+      array, Type::getInt64PtrTy(TheContext), "arrayAddr");
+  // ptr to array
+  Value *arrayPtr =
+      Builder.CreateLoad(Type::getInt64Ty(TheContext), arrayAddr, "arrayPtr");
+
+  // cast array ptr to int64*
+  Value *arrayAddrInt64Ptr = Builder.CreateIntToPtr(
+      ArrayPtr, Type::getInt64PtrTy(TheContext), "arrayAddrInt64Ptr");
+
+  // Load the length of the array
+  Value *arrayLength = Builder.CreateLoad(Type::getInt64Ty(TheContext),
+                                          arrayAddrInt64Ptr, "arrayLength");
+
+  return arrayLength;
+}
+
+llvm::Value *ASTArrayOfExpr::codegen() {
+  return nullptr;
+
+}
+
+/* the following boolean convention is set as: "true" returns 0, "false" returns 1
+ */ 
+llvm::Value *ASTBooleanExpr::codegen() {
+  LOG_S(1) << "Generating code for " << *this;
+
+  if (getValue() == "true") 
+    return oneV;
+  else if (getValue() == "false")
+    return zeroV;
+  throw InternalError("failed to generate bitcode for bool");
+}
+
+llvm::Value *ASTForIteratorStmt::codegen() {
+  return nullptr;
+}
+
+llvm::Value *ASTForRangeStmt::codegen() {
+  return nullptr;
+
+}
+
+llvm::Value *ASTNegExpr::codegen() {
+  return nullptr;
+}
+
+llvm::Value *ASTNotExpr::codegen() {
+  return nullptr;
+
+}
+
+llvm::Value *ASTPostfixStmt::codegen() {
+  return nullptr;
+
+}
+
+llvm::Value *ASTTernaryExpr::codegen() {
+  return nullptr;
+
+}
+
