@@ -1320,12 +1320,11 @@ llvm::Value *ASTArrayOfExpr::codegen() {
  */ 
 llvm::Value *ASTBooleanExpr::codegen() {
   LOG_S(1) << "Generating code for " << *this;
-
-  if (getValue() == "true") 
+  if (getValue()) {
     return oneV;
-  else if (getValue() == "false")
+  }else{
     return zeroV;
-  throw InternalError("failed to generate bitcode for bool");
+  }
 }
 
 llvm::Value *ASTForIteratorStmt::codegen() {
