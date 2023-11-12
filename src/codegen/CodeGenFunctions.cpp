@@ -1157,11 +1157,8 @@ llvm::Value *ASTArrayAccessExpr::codegen() {
     throw InternalError("failed to generate bitcode for the index of the array access expression");
   }
 
-  // Get the array length by creating an ASTArrayLengthExpr instance and calling codegen
-  ASTArrayLengthExpr *lengthExpr = new ASTArrayLengthExpr(array);
-  llvm::Value *arrayLength = lengthExpr->codegen();
-  delete lengthExpr; // deallocate lengthExpr after use.
-
+  // Get the array length
+  Value *arrayLength = Builder.CreateLoad(Type::getInt64Ty(TheContext), array, "arrayLength");
 
   // Create Error Intrinsic
   if (errorIntrinsic == nullptr) {
@@ -1210,6 +1207,7 @@ llvm::Value *ASTArrayExpr::codegen() {
   LOG_S(1) << "Generating code for " << *this;
   // get element size from the array, this will be a vector
   int arraySize = ELEMENTS.size();
+  auto barray = getElements();
   // get context of array size
   Value* arrayLen = ConstantInt::get(Type::getInt64Ty(TheContext), arraySize);
 
@@ -1223,7 +1221,7 @@ llvm::Value *ASTArrayExpr::codegen() {
 
   for (int i = 0; i < arraySize; i++) {
     Value* indexValue = ConstantInt::get(Type::getInt64Ty(TheContext), i+1);
-    Value* elementValue = ELEMENTS[i].at(i)->codegen();
+    Value* elementValue = barray.at(i)->codegen();
     Value* elementPtr = Builder.CreateGEP(Type::getInt64Ty(TheContext), arrayPtr, {indexValue}, "elementPtr");
     // Store the element in the array
     Builder.CreateStore(elementValue, elementPtr);
@@ -1260,7 +1258,7 @@ llvm::Value *ASTArrayLengthExpr::codegen() {
   // // Load the length of the array
   // Value *arrayLength = Builder.CreateLoad(Type::getInt64Ty(TheContext),
   //                                         arrayAddrInt64Ptr, "arrayLength");
-  Value *arrayLength = Builder.CreateLoad(Type::getInt64Ty(TheContext), arrayPtr, "arrayLength");
+  Value *arrayLength = Builder.CreateLoad(Type::getInt64Ty(TheContext), array, "arrayLength");
 
   return arrayLength;
 }
@@ -1298,7 +1296,7 @@ llvm::Value *ASTArrayOfExpr::codegen() {
   loopVar->addIncoming(ConstantInt::get(Type::getInt64Ty(TheContext), 1), preheaderBlock);
 
   // Calculate the address for the current element in the array
-  llvm::Value* elementPtr = Builder.CreateGEP(arrayPtr, loopVar, "elementPtr");
+  llvm::Value* elementPtr = Builder.CreateGEP(arrayPtr->getType()->getPointerElementType(),arrayPtr, loopVar, "elementPtr");
   Builder.CreateStore(valueExpr, elementPtr);
 
   // Increment the loop variable
