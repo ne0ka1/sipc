@@ -1217,14 +1217,14 @@ llvm::Value *ASTArrayExpr::codegen() {
   callocArgs.push_back(ConstantInt::get(Type::getInt64Ty(TheContext), 8));
   auto *allocInst = Builder.CreateCall(callocFun, callocArgs, "allocPtr");
   auto *arrayPtr = Builder.CreatePointerCast(allocInst, Type::getInt64PtrTy(TheContext), "arrayPtr");
-  Builder.CreateStore(arrayLen, arrayPtr);
+  Builder.CreateStore(arrayLen, arrayPtr)->setAlignment(llvm::Align(8));
 
   for (int i = 0; i < arraySize; i++) {
-    Value* indexValue = ConstantInt::get(Type::getInt64Ty(TheContext), i+1);
+    Value* indexValue = ConstantInt::get(Type::getInt64Ty(TheContext), i);
     Value* elementValue = barray.at(i)->codegen();
-    Value* elementPtr = Builder.CreateGEP(Type::getInt64Ty(TheContext), arrayPtr, {indexValue}, "elementPtr");
+    Value* elementPtr = Builder.CreateGEP(arrayPtr->getType()->getPointerElementType(), arrayPtr, {indexValue}, "elementPtr");
     // Store the element in the array
-    Builder.CreateStore(elementValue, elementPtr);
+    Builder.CreateStore(elementValue, elementPtr)->setAlignment(llvm::Align(8));
   }
   // Return the pointer to the allocated and initialized array
   return arrayPtr;
@@ -1270,6 +1270,9 @@ llvm::Value *ASTArrayOfExpr::codegen() {
   }
   // Generate code for the size and the value
   Value* sizeExpr = ELEMENTS[0]->codegen();
+  if (sizeExpr == nullptr) {
+        throw InternalError("Error generating code for array sizeExpr");
+  }
   Value* sizeExprValue = Builder.CreateAdd(sizeExpr, oneV, "sizePlusOne");
   Value* valueExpr = ELEMENTS[1]->codegen();
   // Allocate memory for the array
@@ -1320,8 +1323,10 @@ llvm::Value *ASTBooleanExpr::codegen() {
   LOG_S(1) << "Generating code for " << *this;
   if (getValue()) {
     return oneV;
-  }else{
+  }else if(!getValue()){
     return zeroV;
+  }else{
+     throw InternalError("failed to generate bitcode for bool");
   }
 }
 
