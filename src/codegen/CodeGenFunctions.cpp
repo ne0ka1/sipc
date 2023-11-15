@@ -1133,6 +1133,7 @@ llvm::Value *ASTReturnStmt::codegen() {
   return Builder.CreateRet(argVal);
 } // LCOV_EXCL_LINE
 
+
 llvm::Value *ASTArrayAccessExpr::codegen() {
   LOG_S(1) << "Generating code for " << *this;
   
@@ -1315,6 +1316,7 @@ llvm::Value *ASTArrayOfExpr::codegen() {
   // The arrayPtr is a pointer to the first element of the array
   return arrayPtr;
 }
+
 /* the following boolean convention is set as: "true" returns 0, "false" returns 1
  */ 
 llvm::Value *ASTBooleanExpr::codegen() {
@@ -1328,91 +1330,9 @@ llvm::Value *ASTBooleanExpr::codegen() {
   }
 }
 
-llvm::Value *ASTNegExpr::codegen() {
-  LOG_S(1) << "Generating code for " << *this;
-  Value* argValue = getArg()->codegen();
-  if (argValue == nullptr) {
-    throw InternalError("NULL operand");
-  }
-
-  // Create an LLVM negation instruction
-  return Builder.CreateNeg(argValue, "negtmp");
+llvm::Value *ASTForIteratorStmt::codegen() {
+  return nullptr;
 }
-
-llvm::Value *ASTNotExpr::codegen() {
-  LOG_S(1) << "Generating code for " << *this;
-  Value* argValue = getArg()->codegen();
-  if (argValue == nullptr) {
-    throw InternalError("NULL operand");
-  }
-
-  // Create an LLVM not instruction
-  return Builder.CreateNot(argValue, "notmp");
-}
-
-llvm::Value *ASTPostfixStmt::codegen() {
-  LOG_S(1) << "Generating code for " << *this;
-
-  // trigger code generation for l-value expressions
-  lValueGen = true;
-  Value *lValue = getArg()->codegen();
-  lValueGen = false;
-  if (lValue == nullptr) {
-      throw InternalError(                                 // LCOV_EXCL_LINE
-      "failed to generate lvalue bitcode for the argument of the statement"); // LCOV_EXCL_LINE
-  }
-
-  Value *rValue = getArg()->codegen();
-  if (rValue == nullptr) {
-      throw InternalError(                                 // LCOV_EXCL_LINE
-      "failed to generate rvalue bitcode for the argument of the statement"); // LCOV_EXCL_LINE
-  }
-
-  return Builder.CreateStore(rValue, lValue);
-
-  Value *UpdateV;
-  if (getOp() == "++") {
-    UpdateV = Builder.CreateAdd(rValue, oneV, "addtmp");
-  } else if (getOp() == "--") {
-      UpdateV = Builder.CreateSub(rValue, oneV, "subtmp");
-  }
-
-  return Builder.CreateStore(UpdateV, lValue);
-}
-
-llvm::Value *ASTTernaryExpr::codegen() {
-  LOG_S(1) << "Generating code for " << *this;
-
-  Value *CondV = getCondition()->codegen();
-  if (CondV == nullptr) {
-      throw InternalError(                                   // LCOV_EXCL_LINE
-      "failed to generate bitcode for the conditional expression"); // LCOV_EXCL_LINE
-  }
-  Value *ThenV = getThen()->codegen();
-  if (ThenV == nullptr) {
-      throw InternalError(                                   // LCOV_EXCL_LINE
-      "failed to generate bitcode for the then expression"); // LCOV_EXCL_LINE
-  }
-  Value *ElseV = getElse()->codegen();
-  if (ElseV == nullptr) {
-      throw InternalError(                                   // LCOV_EXCL_LINE
-      "failed to generate bitcode for the else expression"); // LCOV_EXCL_LINE
-  }
-
-  return Builder.CreateSelect(CondV, ThenV, ElseV);
-}
-
-/*
- * The code generated for an forRangeStmt looks like this:
- *        <INIT>           this is executed only once
- *           v
- *          <TEST>
- *   true   /  ^  \   false
- *         v   |   v
- *      <BODY> /  nop      this is called the "exit" block
- *         v  v
- *      <UPDATE>
- */
 
 llvm::Value *ASTForRangeStmt::codegen() {
   LOG_S(1) << "Generating code for " << *this;
@@ -1525,3 +1445,76 @@ llvm::Value *ASTForRangeStmt::codegen() {
   return Builder.CreateCall(nop);
 }
 
+llvm::Value *ASTNegExpr::codegen() {
+  LOG_S(1) << "Generating code for " << *this;
+  Value* argValue = getArg()->codegen();
+  if (argValue == nullptr) {
+    throw InternalError("NULL operand");
+  }
+
+  // Create an LLVM negation instruction
+  return Builder.CreateNeg(argValue, "negtmp");
+}
+
+llvm::Value *ASTNotExpr::codegen() {
+  LOG_S(1) << "Generating code for " << *this;
+  Value* argValue = getArg()->codegen();
+  if (argValue == nullptr) {
+    throw InternalError("NULL operand");
+  }
+
+  // Create an LLVM not instruction
+  return Builder.CreateNot(argValue, "notmp");
+}
+
+llvm::Value *ASTPostfixStmt::codegen() {
+  LOG_S(1) << "Generating code for " << *this;
+
+  // trigger code generation for l-value expressions
+  lValueGen = true;
+  Value *lValue = getArg()->codegen();
+  lValueGen = false;
+  if (lValue == nullptr) {
+      throw InternalError(                                 // LCOV_EXCL_LINE
+      "failed to generate lvalue bitcode for the argument of the statement"); // LCOV_EXCL_LINE
+  }
+
+  Value *rValue = getArg()->codegen();
+  if (rValue == nullptr) {
+      throw InternalError(                                 // LCOV_EXCL_LINE
+      "failed to generate rvalue bitcode for the argument of the statement"); // LCOV_EXCL_LINE
+  }
+
+  return Builder.CreateStore(rValue, lValue);
+
+  Value *UpdateV;
+  if (getOp() == "++") {
+    UpdateV = Builder.CreateAdd(rValue, oneV, "addtmp");
+  } else if (getOp() == "--") {
+      UpdateV = Builder.CreateSub(rValue, oneV, "subtmp");
+  }
+
+  return Builder.CreateStore(UpdateV, lValue);
+}
+
+llvm::Value *ASTTernaryExpr::codegen() {
+  LOG_S(1) << "Generating code for " << *this;
+
+  Value *CondV = getCondition()->codegen();
+  if (CondV == nullptr) {
+      throw InternalError(                                   // LCOV_EXCL_LINE
+      "failed to generate bitcode for the conditional expression"); // LCOV_EXCL_LINE
+  }
+  Value *ThenV = getThen()->codegen();
+  if (ThenV == nullptr) {
+      throw InternalError(                                   // LCOV_EXCL_LINE
+      "failed to generate bitcode for the then expression"); // LCOV_EXCL_LINE
+  }
+  Value *ElseV = getElse()->codegen();
+  if (ElseV == nullptr) {
+      throw InternalError(                                   // LCOV_EXCL_LINE
+      "failed to generate bitcode for the else expression"); // LCOV_EXCL_LINE
+  }
+
+  return Builder.CreateSelect(CondV, ThenV, ElseV);
+}
