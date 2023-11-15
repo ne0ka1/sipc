@@ -1,8 +1,9 @@
 main() 
 {
-  var x;
+  var x, y;
   x = (42 > 41);
-  return x;
+  y = 0;
+  return y;
 }
 
 Functions : {
@@ -10,5 +11,6 @@ Functions : {
 }
 
 Locals for function main : {
-  x : int
+  x : bool,
+  y : int
 }
