@@ -1205,30 +1205,32 @@ llvm::Value *ASTArrayAccessExpr::codegen() {
 
 llvm::Value *ASTArrayExpr::codegen() {
   LOG_S(1) << "Generating code for " << *this;
-  // get element size from the array, this will be a vector
-  int arraySize = ELEMENTS.size();
-  auto barray = getElements();
-  // get context of array size
-  Value* arrayLen = ConstantInt::get(Type::getInt64Ty(TheContext), arraySize);
 
-  // Allocate an int pointer with calloc
-  std::vector<Value *> callocArgs;
-  callocArgs.push_back(ConstantInt::get(Type::getInt64Ty(TheContext), arraySize+1));
-  callocArgs.push_back(ConstantInt::get(Type::getInt64Ty(TheContext), 8));
-  auto *allocInst = Builder.CreateCall(callocFun, callocArgs, "allocPtr");
+  auto elements = getElements();
+  int loopSize = ELEMENTS.size();
+  Value* arrLen = ConstantInt::get(Type::getInt64Ty(TheContext), loopSize);
+
+  //Allocate an int pointer with calloc
+  std::vector<Value *> twoArg;
+  twoArg.push_back(ConstantInt::get(Type::getInt64Ty(TheContext), loopSize+1));
+  twoArg.push_back(ConstantInt::get(Type::getInt64Ty(TheContext), 8));
+  auto *allocInst = Builder.CreateCall(callocFun, twoArg, "allocPtr");
   auto *arrayPtr = Builder.CreatePointerCast(allocInst, Type::getInt64PtrTy(TheContext), "arrayPtr");
-  Builder.CreateStore(arrayLen, arrayPtr)->setAlignment(llvm::Align(8));
 
-  for (int i = 0; i < arraySize; i++) {
-    Value* indexValue = ConstantInt::get(Type::getInt64Ty(TheContext), i);
-    Value* elementValue = barray.at(i)->codegen();
-    Value* elementPtr = Builder.CreateGEP(arrayPtr->getType()->getPointerElementType(), arrayPtr, {indexValue}, "elementPtr");
-    // Store the element in the array
-    Builder.CreateStore(elementValue, elementPtr)->setAlignment(llvm::Align(8));
+  Builder.CreateStore(arrLen, arrayPtr);
+  
+  for (int i = 0; i < loopSize; i++) {
+    Value* counter = ConstantInt::get(Type::getInt64Ty(TheContext), i+1);
+    Value* elementValue = ELEMENTS.at(i)->codegen();
+    Value* gep = Builder.CreateGEP(arrayPtr->getType()->getPointerElementType(), arrayPtr, counter, "elementPtr");
+    Builder.CreateStore(elementValue, gep);
   }
-  // Return the pointer to the allocated and initialized array
+
   return arrayPtr;
 }
+
+
+
 
 
 
