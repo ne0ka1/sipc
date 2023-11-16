@@ -1337,8 +1337,114 @@ llvm::Value *ASTForIteratorStmt::codegen() {
 }
 
 llvm::Value *ASTForRangeStmt::codegen() {
-  return nullptr;
+  LOG_S(1) << "Generating code for " << *this;
 
+  llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+
+  // Create blocks for the loop init, header, body, and exit;
+  labelNum++; // create shared labels for these BBs
+
+  BasicBlock *InitBB = BasicBlock::Create(
+      TheContext, "init" + std::to_string(labelNum), TheFunction);
+  BasicBlock *UpdateBB = BasicBlock::Create(
+      TheContext, "update" + std::to_string(labelNum));
+  BasicBlock *TestBB = BasicBlock::Create(
+      TheContext, "test" + std::to_string(labelNum));
+  BasicBlock *BodyBB =
+      BasicBlock::Create(TheContext, "body" + std::to_string(labelNum));
+  BasicBlock *ExitBB =
+      BasicBlock::Create(TheContext, "exit" + std::to_string(labelNum));
+
+  // Add an explicit branch from the current BB to the Init
+  Builder.CreateBr(InitBB);
+
+  // Emit loop header, including init, test, and update
+  {
+  // Init block
+  Builder.SetInsertPoint(InitBB);
+
+  // trigger code generation for counter expression (should be l-value)
+  lValueGen = true;
+  Value *CounterV = getCounter()->codegen();
+  lValueGen = false;
+  if (CounterV == nullptr) {
+    throw InternalError(                                 // LCOV_EXCL_LINE
+        "failed to generate bitcode for the loop body"); // LCOV_EXCL_LINE
+  }
+
+  // trigger code generation for begin expression
+  Value *BeginV = getBegin()->codegen();
+  if (BeginV == nullptr) {
+    throw InternalError(                                 // LCOV_EXCL_LINE
+        "failed to generate bitcode for the begin of the range"); //LOV_EXCL_LINE
+  }
+
+  // trigger code generation for end expression
+  Value *EndV = getEnd()->codegen();
+  if (EndV == nullptr) {
+    throw InternalError(                                        // LCOV_EXCL_LINE
+        "failed to generate bitcode for the end of the range"); // LCOV_EXCL_LINE
+  }
+
+  // trigger code generation for step expression
+  Value *StepV;
+  if (getStep() == nullptr){
+      StepV = ConstantInt::get(Type::getInt64Ty(TheContext), 1);     
+  }
+  else{
+      StepV = getStep()->codegen();
+  }
+  // Value *StepV = getStep()->codegen();
+
+  if (StepV == nullptr) {
+    throw InternalError(                                         // LCOV_EXCL_LINE
+        "failed to generate bitcode for the step of the range"); // LCOV_EXCL_LINE
+  }
+
+  // assign BeginV to CounterV
+  Builder.CreateStore(BeginV, CounterV);
+
+  // Add an explicit branch from the init to the header
+  Builder.CreateBr(TestBB);
+
+  // Test block
+  TheFunction->getBasicBlockList().push_back(TestBB);
+  Builder.SetInsertPoint(TestBB);
+
+
+  // Convert condition to a bool by comparing counter with end;
+  auto *CondV = Builder.CreateICmpSLE(CounterV, EndV, "forcond");
+
+  Builder.CreateCondBr(CondV, BodyBB, ExitBB);
+
+  // Update block
+  TheFunction->getBasicBlockList().push_back(UpdateBB);
+  Builder.SetInsertPoint(UpdateBB);
+
+  Value *UpdateV = Builder.CreateAdd(CounterV, StepV, "addtmp");   
+  Builder.CreateStore(UpdateV, CounterV);
+    
+  Builder.CreateBr(TestBB);
+  }
+
+  // Emit loop body
+  {
+    TheFunction->getBasicBlockList().push_back(BodyBB);
+    Builder.SetInsertPoint(BodyBB);
+
+    Value *BodyV = getBody()->codegen();
+    if (BodyV == nullptr) {
+      throw InternalError(                                 // LCOV_EXCL_LINE
+          "failed to generate bitcode for the loop body"); // LCOV_EXCL_LINE
+    }
+
+    Builder.CreateBr(UpdateBB);
+  }
+
+  // Emit loop exit block.
+  TheFunction->getBasicBlockList().push_back(ExitBB);
+  Builder.SetInsertPoint(ExitBB);
+  return Builder.CreateCall(nop);
 }
 
 llvm::Value *ASTNegExpr::codegen() {
@@ -1364,12 +1470,53 @@ llvm::Value *ASTNotExpr::codegen() {
 }
 
 llvm::Value *ASTPostfixStmt::codegen() {
-  return nullptr;
+  LOG_S(1) << "Generating code for " << *this;
 
+  // trigger code generation for l-value expressions
+  lValueGen = true;
+  Value *lValue = getArg()->codegen();
+  lValueGen = false;
+  if (lValue == nullptr) {
+      throw InternalError(                                 // LCOV_EXCL_LINE
+      "failed to generate lvalue bitcode for the argument of the statement"); // LCOV_EXCL_LINE
+  }
+
+  Value *rValue = getArg()->codegen();
+  if (rValue == nullptr) {
+      throw InternalError(                                 // LCOV_EXCL_LINE
+      "failed to generate rvalue bitcode for the argument of the statement"); // LCOV_EXCL_LINE
+  }
+
+  return Builder.CreateStore(rValue, lValue);
+
+  Value *UpdateV;
+  if (getOp() == "++") {
+    UpdateV = Builder.CreateAdd(rValue, oneV, "addtmp");
+  } else if (getOp() == "--") {
+      UpdateV = Builder.CreateSub(rValue, oneV, "subtmp");
+  }
+
+  return Builder.CreateStore(UpdateV, lValue);
 }
 
 llvm::Value *ASTTernaryExpr::codegen() {
-  return nullptr;
+  LOG_S(1) << "Generating code for " << *this;
 
+  Value *CondV = getCondition()->codegen();
+  if (CondV == nullptr) {
+      throw InternalError(                                   // LCOV_EXCL_LINE
+      "failed to generate bitcode for the conditional expression"); // LCOV_EXCL_LINE
+  }
+  Value *ThenV = getThen()->codegen();
+  if (ThenV == nullptr) {
+      throw InternalError(                                   // LCOV_EXCL_LINE
+      "failed to generate bitcode for the then expression"); // LCOV_EXCL_LINE
+  }
+  Value *ElseV = getElse()->codegen();
+  if (ElseV == nullptr) {
+      throw InternalError(                                   // LCOV_EXCL_LINE
+      "failed to generate bitcode for the else expression"); // LCOV_EXCL_LINE
+  }
+
+  return Builder.CreateSelect(CondV, ThenV, ElseV);
 }
-
