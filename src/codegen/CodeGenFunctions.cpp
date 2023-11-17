@@ -1368,7 +1368,7 @@ llvm::Value *ASTBooleanExpr::codegen() {
 }
 
 /*
- * The code generated for an forRangeStmt looks like this:
+ * The code generated for an forIteratorStmt looks like this:
  *       <INIT> initializes the array
  *          v
  *       <HEADER>		
@@ -1440,11 +1440,11 @@ llvm::Value *ASTForIteratorStmt::codegen() {
   Builder.SetInsertPoint(BodyBB);
     
   // Assign element of array
-  Value *ElemPtr = Builder.CreateGEP(ArrayPtr->getType()->getPointerElementType(), ArrayPtr, Index, "ElemPtr");
-  Builder.CreateLoad(ElemPtr->getType()->getPointerElementType(), ElemV, "LoadElement");
+  Value *ElemPtr = Builder.CreateGEP(ArrayPtr->getType()->getPointerElementType(), ArrayPtr, {Index}, "ElemPtr");
+  Builder.CreateLoad(ElemPtr->getType()->getPointerElementType(), ElemPtr, "LoadElement");
         
   // Update index
-  Builder.CreateAdd(Index, oneV, "addtmp");
+  Index = Builder.CreateAdd(Index, ConstantInt::get(Type::getInt64Ty(TheContext), 1), "addtmp");
 
   // Emit loop body
   Value *BodyV = getBody()->codegen();
@@ -1460,6 +1460,7 @@ llvm::Value *ASTForIteratorStmt::codegen() {
   Builder.SetInsertPoint(ExitBB);
   return Builder.CreateCall(nop);
 }
+
 
 /*
  * The code generated for an forRangeStmt looks like this:
@@ -1631,7 +1632,6 @@ llvm::Value *ASTNotExpr::codegen() {
   - rValue is stored back into the l-value.
   - Creates LLVM instruction (CreateAdd for '++', CreateSub for '--') to modify the r-value.
   - UpdateV is stored in the l-value, completing the postfix operation.
-  - Returns the original value of the variable prior to the postfix operation.
 */
 llvm::Value *ASTPostfixStmt::codegen() {
   // Done
