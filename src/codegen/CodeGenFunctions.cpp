@@ -1226,41 +1226,28 @@ llvm::Value *ASTArrayExpr::codegen() {
     Builder.CreateStore(elementValue, gep);
   }
 
-  return arrayPtr;
+  return Builder.CreatePtrToInt(arrayPtr, Type::getInt64Ty(TheContext));
 }
-
-
-
 
 
 
 llvm::Value *ASTArrayLengthExpr::codegen() {
   LOG_S(1) << "Generating code for " << *this;
 
-  // Get the array
+  // * Get the array.
   lValueGen = true;
-  Value *array = getArray()->codegen();
+  llvm::Value *array = getArray()->codegen();
   lValueGen = false;
 
   if (array == nullptr) {
-    throw InternalError("failed to generate bitcode for the array for the "
+    throw InternalError("failed to generate bitcode for the array of the "
                         "array length expression");
   }
-  // // Load address of array
-  // Value *arrayAddr = Builder.CreateIntToPtr(
-  //     array, Type::getInt64PtrTy(TheContext), "arrayAddr");
-  // // ptr to array
-  // Value *arrayPtr =
-  //     Builder.CreateLoad(Type::getInt64Ty(TheContext), arrayAddr, "arrayPtr");
+  // Load addr of array from its memory home
+  Value *arrayAddr = Builder.CreateIntToPtr(array, Type::getInt64PtrTy(TheContext), "arrayAddr");
 
-  // // cast array ptr to int64*
-  // Value *arrayAddrInt64Ptr = Builder.CreateIntToPtr(
-  //     ArrayPtr, Type::getInt64PtrTy(TheContext), "arrayAddrInt64Ptr");
-
-  // // Load the length of the array
-  // Value *arrayLength = Builder.CreateLoad(Type::getInt64Ty(TheContext),
-  //                                         arrayAddrInt64Ptr, "arrayLength");
-  Value *arrayLength = Builder.CreateLoad(Type::getInt64Ty(TheContext), array, "arrayLength");
+  // Assuming 'array' is a pointer to the start of the array where the first element is the length
+  llvm::Value *arrayLength = Builder.CreateLoad(Type::getInt64Ty(TheContext), arrayAddr, "arrayLength");
 
   return arrayLength;
 }

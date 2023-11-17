@@ -442,7 +442,7 @@ TEST_CASE("TypeConstraintVisitor: empty array","[TypeConstraintVisitor]") {
   std::vector<std::string> expected{
       "\u27E60@5:15\u27E7 = int",                       // int constant
       "\u27E6x@3:12\u27E7 = \u27E6[]@4:12\u27E7",     // assign
-      "\u27E6[]@4:12\u27E7 = [] ",           
+      "\u27E6[]@4:12\u27E7 = [] \u03B1<[]@4:12>",            // array of alpha
       "\u27E6main@2:6\u27E7 = () -> \u27E60@5:15\u27E7" // function return int
   };
 
@@ -611,7 +611,7 @@ TEST_CASE("TypeConstraintVisitor: ternary expression test", "[TypeConstraintVisi
 
     // Boolean are not equal 
     TipBool boolean3;
-    TipArray fakeBoolean;
+    TipInt fakeBoolean;
     REQUIRE_FALSE(boolean3 == fakeBoolean);
 
     // Print
