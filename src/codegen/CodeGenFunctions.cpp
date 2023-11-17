@@ -1361,11 +1361,11 @@ llvm::Value *ASTForRangeStmt::codegen() {
   // Init block
   Builder.SetInsertPoint(InitBB);
 
-  // trigger code generation for counter expression (should be l-value)
+  // trigger code generation for counter expression l-value
   lValueGen = true;
-  Value *CounterV = getCounter()->codegen();
+  Value *CounterLV = getCounter()->codegen();
   lValueGen = false;
-  if (CounterV == nullptr) {
+  if (CounterLV == nullptr) {
     throw InternalError(                                 // LCOV_EXCL_LINE
         "failed to generate bitcode for the loop body"); // LCOV_EXCL_LINE
   }
@@ -1399,8 +1399,8 @@ llvm::Value *ASTForRangeStmt::codegen() {
         "failed to generate bitcode for the step of the range"); // LCOV_EXCL_LINE
   }
 
-  // assign BeginV to CounterV
-  Builder.CreateStore(BeginV, CounterV);
+  // assign BeginV to CounterLV
+  Builder.CreateStore(BeginV, CounterLV);
 
   // Add an explicit branch from the init to the header
   Builder.CreateBr(TestBB);
@@ -1409,9 +1409,9 @@ llvm::Value *ASTForRangeStmt::codegen() {
   TheFunction->getBasicBlockList().push_back(TestBB);
   Builder.SetInsertPoint(TestBB);
 
-
+  auto CounterRV =  Builder.CreateLoad(CounterLV->getType()->getPointerElementType(), CounterLV, "rv");
   // Convert condition to a bool by comparing counter with end;
-  auto *CondV = Builder.CreateICmpSLE(CounterV, EndV, "forcond");
+  auto CondV = Builder.CreateICmpSLT(CounterRV, EndV, "forcond");
 
   Builder.CreateCondBr(CondV, BodyBB, ExitBB);
 
@@ -1419,8 +1419,8 @@ llvm::Value *ASTForRangeStmt::codegen() {
   TheFunction->getBasicBlockList().push_back(UpdateBB);
   Builder.SetInsertPoint(UpdateBB);
 
-  Value *UpdateV = Builder.CreateAdd(CounterV, StepV, "addtmp");   
-  Builder.CreateStore(UpdateV, CounterV);
+  Value *UpdateV = Builder.CreateAdd(CounterRV, StepV, "addtmp");   
+  Builder.CreateStore(UpdateV, CounterLV);
     
   Builder.CreateBr(TestBB);
   }
@@ -1485,8 +1485,6 @@ llvm::Value *ASTPostfixStmt::codegen() {
       "failed to generate rvalue bitcode for the argument of the statement"); // LCOV_EXCL_LINE
   }
 
-  return Builder.CreateStore(rValue, lValue);
-
   Value *UpdateV;
   if (getOp() == "++") {
     UpdateV = Builder.CreateAdd(rValue, oneV, "addtmp");
@@ -1505,6 +1503,10 @@ llvm::Value *ASTTernaryExpr::codegen() {
       throw InternalError(                                   // LCOV_EXCL_LINE
       "failed to generate bitcode for the conditional expression"); // LCOV_EXCL_LINE
   }
+
+  // Convert condition to a bool by comparing non-equal to 0.
+  CondV = Builder.CreateICmpNE(CondV, ConstantInt::get(CondV->getType(), 0), "ternarycond");
+  
   Value *ThenV = getThen()->codegen();
   if (ThenV == nullptr) {
       throw InternalError(                                   // LCOV_EXCL_LINE

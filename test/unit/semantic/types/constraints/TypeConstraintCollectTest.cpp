@@ -579,8 +579,9 @@ TEST_CASE("TypeConstraintVisitor: ternary expression test", "[TypeConstraintVisi
     program << R"(
             // x is bool; y is int
             short() {
-              var x, y;
-              return x ? 1 : y;
+              var x, y, z;
+              z = x ? 1 : y;
+              return z;
             }
          )";
 
@@ -604,6 +605,10 @@ TEST_CASE("TypeConstraintVisitor: ternary expression test", "[TypeConstraintVisi
 
     auto yType = std::make_shared<TipVar>(symbols->getLocal("y", fDecl));
     REQUIRE(*unifier.inferred(yType) == *intType);
+
+    auto zType = std::make_shared<TipVar>(symbols->getLocal("z", fDecl));
+    REQUIRE(*unifier.inferred(zType) == *intType);
+
     // Boolean are equal 
     TipBool boolean;
     TipBool boolean2;
@@ -619,9 +624,6 @@ TEST_CASE("TypeConstraintVisitor: ternary expression test", "[TypeConstraintVisi
     std::stringstream stream;
     stream << boolean4;
     REQUIRE("bool" == stream.str());
-
-
-    
 }
 
 TEST_CASE("TypeConstraintVisitor: for statement and postfix test", "[TypeConstraintVisitor]") {
@@ -794,5 +796,3 @@ TEST_CASE("TypeConstraintVisitor: Array type test", "[TypeConstraintVisitor]") {
 
 }
 }
-
-
