@@ -42,10 +42,6 @@ void TipArray::accept(TipTypeVisitor *visitor) {
 }
 
 std::ostream &TipArray::print(std::ostream &out) const {
-  if (arguments.empty()) {
-    out << "[] ";
-  } else {
-    out << "[] " << *arguments.front();
-  }
+  out << "[] " << *arguments.front();
   return out;
 }

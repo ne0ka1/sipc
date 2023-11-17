@@ -1,0 +1,21 @@
+range(a, b){
+  var i, x;
+  for (i : a .. b){
+    x = x + i;
+}
+  return x;
+}
+
+rangeby(a, b, c){
+  var i, x;
+  for (i : a .. b by c){
+    x = x + i;
+}
+  return x;
+}
+
+main(){
+  if (range(1, 4) != 6) error range(1, 4);
+  if (rangeby(1, 6, 2) != 9) error rangeby(1, 6, 2);
+  return 0;
+}

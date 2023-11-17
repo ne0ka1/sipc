@@ -442,7 +442,7 @@ TEST_CASE("TypeConstraintVisitor: empty array","[TypeConstraintVisitor]") {
   std::vector<std::string> expected{
       "\u27E60@5:15\u27E7 = int",                       // int constant
       "\u27E6x@3:12\u27E7 = \u27E6[]@4:12\u27E7",     // assign
-      "\u27E6[]@4:12\u27E7 = [] ",           
+      "\u27E6[]@4:12\u27E7 = [] \u03B1<[]@4:12>",            // array of alpha
       "\u27E6main@2:6\u27E7 = () -> \u27E60@5:15\u27E7" // function return int
   };
 
@@ -579,8 +579,9 @@ TEST_CASE("TypeConstraintVisitor: ternary expression test", "[TypeConstraintVisi
     program << R"(
             // x is bool; y is int
             short() {
-              var x, y;
-              return x ? 1 : y;
+              var x, y, z;
+              z = x ? 1 : y;
+              return z;
             }
          )";
 
@@ -604,6 +605,10 @@ TEST_CASE("TypeConstraintVisitor: ternary expression test", "[TypeConstraintVisi
 
     auto yType = std::make_shared<TipVar>(symbols->getLocal("y", fDecl));
     REQUIRE(*unifier.inferred(yType) == *intType);
+
+    auto zType = std::make_shared<TipVar>(symbols->getLocal("z", fDecl));
+    REQUIRE(*unifier.inferred(zType) == *intType);
+
     // Boolean are equal 
     TipBool boolean;
     TipBool boolean2;
@@ -611,7 +616,7 @@ TEST_CASE("TypeConstraintVisitor: ternary expression test", "[TypeConstraintVisi
 
     // Boolean are not equal 
     TipBool boolean3;
-    TipArray fakeBoolean;
+    TipInt fakeBoolean;
     REQUIRE_FALSE(boolean3 == fakeBoolean);
 
     // Print
@@ -619,9 +624,6 @@ TEST_CASE("TypeConstraintVisitor: ternary expression test", "[TypeConstraintVisi
     std::stringstream stream;
     stream << boolean4;
     REQUIRE("bool" == stream.str());
-
-
-    
 }
 
 TEST_CASE("TypeConstraintVisitor: for statement and postfix test", "[TypeConstraintVisitor]") {
@@ -794,5 +796,3 @@ TEST_CASE("TypeConstraintVisitor: Array type test", "[TypeConstraintVisitor]") {
 
 }
 }
-
-

@@ -334,8 +334,8 @@ void TypeConstraintVisitor::endVisit(ASTArrayExpr *element) {
     std::shared_ptr<TipType> alphaType;
     // empty array
     if (element->getElements().size() == 0) {
-      constraintHandler->handle(astToVar(element),
-                                std::make_shared<TipArray>());
+      auto alphaType = std::make_shared<TipArray>(std::make_shared<TipAlpha>(element));
+      constraintHandler->handle(astToVar(element), alphaType);
     }
     // non-empty array
     else {
@@ -421,15 +421,16 @@ void TypeConstraintVisitor::endVisit(ASTPostfixStmt *element) {
   constraintHandler->handle(astToVar(element->getArg()), std::make_shared<TipInt>());
 }
 
-/*! \brief Type constraints for iterator-style for loop.
+/*! \brief Type constraints for ternary expression.
  *
  * Type rules for "E1 ? E2 : E3":
  * [[E1]] = bool
- * [[E2]] = [[E3]]
+ * [[E1 ? E2 : E3]] = [[E2]] = [[E3]]
  */
 void TypeConstraintVisitor::endVisit(ASTTernaryExpr *element) {
   constraintHandler->handle(astToVar(element->getCondition()), std::make_shared<TipBool>());
   constraintHandler->handle(astToVar(element->getThen()), astToVar(element->getElse()));
+  constraintHandler->handle(astToVar(element), astToVar(element->getThen()));
 }
 
 /*! \brief Type constraints for range-style for loop.

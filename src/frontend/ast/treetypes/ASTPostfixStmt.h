@@ -15,7 +15,7 @@ public:
   std::string getOp() const { return OP; }
   ASTExpr *getArg() const { return ARG.get(); }
   void accept(ASTVisitor *visitor) override;
-  llvm::Value *codegen() override {return nullptr;};
+  llvm::Value *codegen() override;
 
 protected:
   std::ostream &print(std::ostream &out) const override;
