@@ -1375,9 +1375,18 @@ llvm::Value *ASTForIteratorStmt::codegen() {
 }
 
 /*
-Comment Here
-*/
+ * The code generated for an forRangeStmt looks like this:
+ *        <INIT>           this is executed only once
+ *           v
+ *          <TEST>
+ *   true   /  ^  \   false
+ *         v   |   v
+ *      <BODY> /  nop      this is called the "exit" block
+ *         v  v
+ *      <UPDATE>
+ */
 llvm::Value *ASTForRangeStmt::codegen() {
+
   LOG_S(1) << "Generating code for " << *this;
 
   llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
