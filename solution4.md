@@ -13,7 +13,7 @@ For `ASTBinaryExpr`, we modified it by adding: and, or, not, >=, <=, <, !=, and 
 `ASTNegExpr` and `ASTNotExpr` have the same format; we check the Argument using `getArg`. 
 
 ## Arrays
-For `ASTArrayExpr`, we ran into some challenges regarding the return value. Initially, we returned the `arrayptr`; however, upon creating the array tests, we learned that `arrayptr` holds type "i64*" when it's so the tests would crash because we expected a type "i64". To solve this issue, we used `Builder.CreatePtrToInt(arrayPtr, Type::getInt64Ty(TheContext))` to return a type "i64." Once we figured out this problem, we were able to finish the Codegen for the remaining Nodes that rely on the `ASTArrayExpr.` 
+however, upon creating the array tests, we learned that `arrayptr` holds type "i64*" when it's so the tests would crash because we expected a type "i64". To solve this issue, we used `Builder.CreatePtrToInt(arrayPtr, Type::getInt64Ty(TheContext))` to return a type "i64." Once we figured out this problem, we were able to finish the Codegen for the remaining Nodes that rely on the `ASTArrayExpr.` 
 
 Another design choice we made for `ASTArrayExpr` was we stored the length of the array as the first value in memory. This design choice made `ASTArrayLengthExpr` trivial to create. `ASTArrayOfExpr` is also in the same format as `ASTArrayExpr,` except it contains a size and value variable determining its structure. 
 
@@ -21,7 +21,23 @@ Another design choice we made for `ASTArrayExpr` was we stored the length of the
 
 For arrays, we tested out creating simple, nested, and empty arrays. We also tested out getting the size for each variation. 
 
+## Ternary
+The code generation for `ASTTernaryExpr` is somewhat similar to `ASTIfStmt` except that we use `Builder.CreateSelect` rather than block branching to select the "then" or "else" part.
+Since the first argument for `CreateSelect` is a bool but the generated value for condition in ternary expression is a int64, we convert the condition to a bool by comparing non-equal to 0.
+
+## For loops
+In `ASTForIteratorStmt`, we create blocks for loop init, body, update, and exit.
+Similar to `ASTWhileStmt`, a large part of the code are routines setting up the different blocks, establishing the insertion point, and letting other codegen functions do their work.
+The no-rountine part of the code involves setting up an index for the array, comparing the index with array length in the header, assigning the array element and updating the index in the body.
+
+`ASTForRangeStmt` is again similar, but here we have more blocks: init, test, body, update, and exit.
+The reason is that update of the counter needs to be done after the loop body but before the range test.
+
+## Postfix Statement
+For `ASTPostfixStmt`, we generate l-value and r-value of the argument, and update the r-value using `CreateAdd` or `CreateSub` code according to the operator type.
+Finally, we assign the updated r-value to the l-value via `Builder.CreateStore`.
+
 ## Testing
-For tests, we created a directory called `siptests.` in this directory, we created `.tip` files and `.tip.pppt` to generate the code and compare it with an expected output (types, structure, etc.). We modified the `run.sh` file to run our tests and check the differences. We also created a `run_system.sh` script in the home directory to make building and checking tests easier. 
+For tests, we created `.tip` files and `.tip.pppt` to generate the code and compare it with an expected output (types, structure, etc.) in the `siptests` directory. We modified the `run.sh` file to run our tests and check the differences. We also created a `run_system.sh` script in the home directory to make building and checking tests easier. 
 
 To ensure our Codegen outputs the correct type and value, we created type checks for each test and checked the output using if and error. For example,`if ((firstValue() != 1)) error firstValue();` and `firstValue : () -> int.`
