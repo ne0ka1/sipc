@@ -1,0 +1,60 @@
+main() 
+{
+  var a, b, c, d, e, ee, f, h, i, j, k, l;
+  a = true;
+  if ((a != true)) 
+    error 1;
+  b = false;
+  if ((b != false)) 
+    error 0;
+  c = not a;
+  if ((c != false)) 
+    error 0;
+  d = (1 < 2);
+  if ((d != true)) 
+    error 1;
+  e = (1 <= 2);
+  if ((e != true)) 
+    error 1;
+  ee = (1 >= 2);
+  if ((ee != false)) 
+    error 0;
+  f = (2 > 1);
+  if ((f != true)) 
+    error 1;
+  h = (1 == 1);
+  if ((h != true)) 
+    error 1;
+  i = (1 != 1);
+  if ((i != false)) 
+    error 0;
+  j = (a and b);
+  if ((j != false)) 
+    error 0;
+  k = ((true or true) and false);
+  if ((k != true)) 
+    error 1;
+  l = ((((true or true) or true) or true) or false);
+  if ((l != true)) 
+    error 1;
+  return 0;
+}
+
+Functions : {
+  main : () -> int
+}
+
+Locals for function main : {
+  a : bool,
+  b : bool,
+  c : bool,
+  d : bool,
+  e : bool,
+  ee : bool,
+  f : bool,
+  h : bool,
+  i : bool,
+  j : bool,
+  k : bool,
+  l : bool
+}
