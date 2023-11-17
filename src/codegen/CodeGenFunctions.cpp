@@ -1290,7 +1290,7 @@ llvm::Value *ASTArrayLengthExpr::codegen() {
 /*
   Generates LLVM code for creating an arrayofexpr.
   - Generates size and check if null, throwing an error if it's null.
-  - Generates size and value if null, throwing an error if it's null.
+  - Generates value and value if null, throwing an error if it's null.
   - Allocates memory for the array using 'calloc', which is sized based on the size expression plus one.
   - The first element of the array is used to store its size.
   - Loop to intialize each value in array
