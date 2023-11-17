@@ -1135,6 +1135,7 @@ llvm::Value *ASTReturnStmt::codegen() {
 
 
 llvm::Value *ASTArrayAccessExpr::codegen() {
+  // Done
   LOG_S(1) << "Generating code for " << *this;
   
   bool isLValue = lValueGen;
@@ -1149,16 +1150,17 @@ llvm::Value *ASTArrayAccessExpr::codegen() {
     throw InternalError("failed to generate bitcode for the array of the array access expression");
   }
   Value *arrayAddr = Builder.CreateIntToPtr(array, Type::getInt64PtrTy(TheContext), "arrayAddr");
-  // get array ptr
-  Value *arrayPtr = Builder.CreateIntToPtr(arrayAddr, Type::getInt64PtrTy(TheContext), "arrayAddrInt64Ptr");
+  Value *arrayPtr = Builder.CreateIntToPtr(arrayAddr, Type::getInt64PtrTy(TheContext), "arrayPtr");
+
   // get array index
   Value *index = getIndex()->codegen();
   if (index == nullptr) {
     throw InternalError("failed to generate bitcode for the index of the array access expression");
   }
 
-  // Get the array length
-  Value *arrayLength = Builder.CreateLoad(Type::getInt64Ty(TheContext), array, "arrayLength");
+  // Array length
+  Value *arrayLength = Builder.CreateLoad(Type::getInt64Ty(TheContext), arrayAddr, "arrayLength");
+
 
   // Create Error Intrinsic
   if (errorIntrinsic == nullptr) {
@@ -1174,8 +1176,8 @@ llvm::Value *ASTArrayAccessExpr::codegen() {
   BasicBlock* AccessBB = BasicBlock::Create(TheContext, "access", TheFunction); // Corrected to AccessBB
   
   // Check index bounds
-  Value* isIndexNegative = Builder.CreateICmpSLT(index, llvm::ConstantInt::get(TheContext, APInt(64, 0)), "isneg");
-  Value* isIndexOutOfBounds = Builder.CreateICmpSGE(index, arrayLength, "isoutofbounds");
+  Value *isIndexNegative = Builder.CreateICmpSLT(index, llvm::ConstantInt::get(TheContext, llvm::APInt(64, 0)), "isneg");
+  Value *isIndexOutOfBounds = Builder.CreateICmpSGE(index, arrayLength, "isoutofbounds");
   
   // Use logical OR to check if either bound condition is true, then branch to error.
   Value* indexOutOfBound = Builder.CreateOr(isIndexNegative, isIndexOutOfBounds, "indexOutOfBound");
@@ -1189,8 +1191,8 @@ llvm::Value *ASTArrayAccessExpr::codegen() {
   
   // Emit code for the AccessBB
   Builder.SetInsertPoint(AccessBB);
-  llvm::Value* indexPlusOne = Builder.CreateAdd(index, llvm::ConstantInt::get(TheContext, llvm::APInt(64, 1)), "idxPlusOne");
-  llvm::Value* elemPtr = Builder.CreateGEP(arrayPtr->getType()->getPointerElementType(), arrayPtr, indexPlusOne, "elemPtr");
+  Value *idxPlusOne = Builder.CreateAdd(index, oneV, "idxPlusOne");
+  Value *elemPtr = Builder.CreateGEP(arrayPtr->getType()->getPointerElementType(), arrayPtr, idxPlusOne, "elemPtr");
   
   if (lValueGen) {
     // If it's an L-value, return the pointer to the element.
@@ -1204,6 +1206,7 @@ llvm::Value *ASTArrayAccessExpr::codegen() {
 
 
 llvm::Value *ASTArrayExpr::codegen() {
+  // DONE
   LOG_S(1) << "Generating code for " << *this;
 
   auto elements = getElements();
@@ -1232,6 +1235,7 @@ llvm::Value *ASTArrayExpr::codegen() {
 
 
 llvm::Value *ASTArrayLengthExpr::codegen() {
+  // DONE
   LOG_S(1) << "Generating code for " << *this;
 
   // * Get the array.
@@ -1253,6 +1257,7 @@ llvm::Value *ASTArrayLengthExpr::codegen() {
 }
 
 llvm::Value *ASTArrayOfExpr::codegen() {
+  // Done
   // Check if we have exactly two elements
   if (ELEMENTS.size() != 2) {
     throw InternalError("Array of expression requires exactly two elements.");
@@ -1303,7 +1308,7 @@ llvm::Value *ASTArrayOfExpr::codegen() {
   Builder.SetInsertPoint(afterLoopBlock);
 
   // The arrayPtr is a pointer to the first element of the array
-  return arrayPtr;
+  return Builder.CreatePtrToInt(arrayPtr, Type::getInt64Ty(TheContext));
 }
 
 /* the following boolean convention is set as: "true" returns 0, "false" returns 1

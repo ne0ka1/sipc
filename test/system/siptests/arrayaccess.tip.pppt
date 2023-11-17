@@ -1,0 +1,76 @@
+firstValue() 
+{
+  return [1, 2, 3][0];
+}
+
+firstVariableValue() 
+{
+  var x;
+  x = [1, 2, 3];
+  return x[0];
+}
+
+secondValue() 
+{
+  return [1, 2, 3][1];
+}
+
+lastValue() 
+{
+  return [1, 2, 3][2];
+}
+
+nestedValue() 
+{
+  var x;
+  x = [[1, 2], [2, 3], [4, 5]];
+  return x[0][1];
+}
+
+main() 
+{
+  if ((firstValue() != 1)) 
+    error firstValue();
+  if ((firstVariableValue() != 1)) 
+    error firstVariableValue();
+  if ((secondValue() != 2)) 
+    error secondValue();
+  if ((lastValue() != 3)) 
+    error lastValue();
+  if ((nestedValue() != 2)) 
+    error nestedValue();
+  return 0;
+}
+
+Functions : {
+  firstValue : () -> int,
+  firstVariableValue : () -> int,
+  lastValue : () -> int,
+  main : () -> int,
+  nestedValue : () -> int,
+  secondValue : () -> int
+}
+
+Locals for function firstValue : {
+
+}
+
+Locals for function firstVariableValue : {
+  x : [] int
+}
+
+Locals for function lastValue : {
+
+}
+
+Locals for function main : {
+
+}
+
+Locals for function nestedValue : {
+  x : [] [] int
+}
+
+Locals for function secondValue : {
+
+}
