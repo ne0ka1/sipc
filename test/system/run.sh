@@ -220,6 +220,23 @@ if [ ${exit_code} -eq 0 ]; then
 fi
 
 # Type checking at the system level
+for i in siptests/*.tip
+do
+  initialize_test
+  base="$(basename $i .tip)"
+
+  ${TIPC} -pp -pt $i >${SCRATCH_DIR}/$base.pppt
+  diff $i.pppt ${SCRATCH_DIR}/$base.pppt >${SCRATCH_DIR}/$base.diff
+  if [[ -s ${SCRATCH_DIR}/$base.diff ]]
+  then
+    echo -n "Test differences for : " 
+    echo $i
+    cat ${SCRATCH_DIR}/$base.diff
+    ((numfailures++))
+  fi 
+done
+
+# Type checking at the system level
 for i in selftests/*.tip
 do
   initialize_test

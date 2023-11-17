@@ -1,0 +1,10 @@
+main() {
+  var a, b, c, d, e, f;
+  a = [1];
+  b = [[1,2,3],[1,2,3],[1,2,3]];
+  c = [3 of 3];
+  d = [3 of [3 of 3]];
+  e = [3 of true];
+  f = [true, false, true and false];
+  return 0;
+}

@@ -1133,8 +1133,23 @@ llvm::Value *ASTReturnStmt::codegen() {
   return Builder.CreateRet(argVal);
 } // LCOV_EXCL_LINE
 
+// SIP EXTENSIONS
 
+
+/*
+  Generates the LLVM for accessing an element of an array
+  - Generate Value for the array and the index expression.
+  - Check for null values for the array and the index, throwing an error if any are null.
+  - Convert the array's address to a pointer type for indexing.
+  - Load the length of the array and performing bounds checking on the index to ensure it is within the valid range of the array. 
+      check if the index is negative or greater than or equal to the array length.
+  - If out-of-bounds index, the function branches to an error handling block.
+  - If the index is within bounds, the function calculates the address of the desired array element and either:
+    - Returns a pointer to the array element.
+    - Loads and returns the value of the array element.
+*/
 llvm::Value *ASTArrayAccessExpr::codegen() {
+  // Done
   LOG_S(1) << "Generating code for " << *this;
   
   bool isLValue = lValueGen;
@@ -1149,16 +1164,17 @@ llvm::Value *ASTArrayAccessExpr::codegen() {
     throw InternalError("failed to generate bitcode for the array of the array access expression");
   }
   Value *arrayAddr = Builder.CreateIntToPtr(array, Type::getInt64PtrTy(TheContext), "arrayAddr");
-  // get array ptr
-  Value *arrayPtr = Builder.CreateIntToPtr(arrayAddr, Type::getInt64PtrTy(TheContext), "arrayAddrInt64Ptr");
+  Value *arrayPtr = Builder.CreateIntToPtr(arrayAddr, Type::getInt64PtrTy(TheContext), "arrayPtr");
+
   // get array index
   Value *index = getIndex()->codegen();
   if (index == nullptr) {
     throw InternalError("failed to generate bitcode for the index of the array access expression");
   }
 
-  // Get the array length
-  Value *arrayLength = Builder.CreateLoad(Type::getInt64Ty(TheContext), array, "arrayLength");
+  // Array length
+  Value *arrayLength = Builder.CreateLoad(Type::getInt64Ty(TheContext), arrayAddr, "arrayLength");
+
 
   // Create Error Intrinsic
   if (errorIntrinsic == nullptr) {
@@ -1174,8 +1190,8 @@ llvm::Value *ASTArrayAccessExpr::codegen() {
   BasicBlock* AccessBB = BasicBlock::Create(TheContext, "access", TheFunction); // Corrected to AccessBB
   
   // Check index bounds
-  Value* isIndexNegative = Builder.CreateICmpSLT(index, llvm::ConstantInt::get(TheContext, APInt(64, 0)), "isneg");
-  Value* isIndexOutOfBounds = Builder.CreateICmpSGE(index, arrayLength, "isoutofbounds");
+  Value *isIndexNegative = Builder.CreateICmpSLT(index, llvm::ConstantInt::get(TheContext, llvm::APInt(64, 0)), "isneg");
+  Value *isIndexOutOfBounds = Builder.CreateICmpSGE(index, arrayLength, "isoutofbounds");
   
   // Use logical OR to check if either bound condition is true, then branch to error.
   Value* indexOutOfBound = Builder.CreateOr(isIndexNegative, isIndexOutOfBounds, "indexOutOfBound");
@@ -1189,8 +1205,8 @@ llvm::Value *ASTArrayAccessExpr::codegen() {
   
   // Emit code for the AccessBB
   Builder.SetInsertPoint(AccessBB);
-  llvm::Value* indexPlusOne = Builder.CreateAdd(index, llvm::ConstantInt::get(TheContext, llvm::APInt(64, 1)), "idxPlusOne");
-  llvm::Value* elemPtr = Builder.CreateGEP(arrayPtr->getType()->getPointerElementType(), arrayPtr, indexPlusOne, "elemPtr");
+  Value *idxPlusOne = Builder.CreateAdd(index, oneV, "idxPlusOne");
+  Value *elemPtr = Builder.CreateGEP(arrayPtr->getType()->getPointerElementType(), arrayPtr, idxPlusOne, "elemPtr");
   
   if (lValueGen) {
     // If it's an L-value, return the pointer to the element.
@@ -1202,68 +1218,86 @@ llvm::Value *ASTArrayAccessExpr::codegen() {
 }
 
 
-
+/*
+  Generates LLVM code for creating an array
+  - It retrieves the elements of the array and determines the size of the array.
+  - Allocates memory for the array using 'calloc', with space for the array length plus the elements.
+  - The first element of the allocated space is used to store the length of the array.
+  - Iterates over the array elements, generating code for
+     each element and storing them in the allocated array space.
+  - The array elements start from the second position in the allocated space (index 1), 
+      as the first position (index 0) is reserved for the array length.
+  - After storing all elements, it returns the pointer to the allocated array, cast to a 64-bit integer.
+*/
 llvm::Value *ASTArrayExpr::codegen() {
+  // DONE
   LOG_S(1) << "Generating code for " << *this;
-  // get element size from the array, this will be a vector
-  int arraySize = ELEMENTS.size();
-  auto barray = getElements();
-  // get context of array size
-  Value* arrayLen = ConstantInt::get(Type::getInt64Ty(TheContext), arraySize);
 
-  // Allocate an int pointer with calloc
-  std::vector<Value *> callocArgs;
-  callocArgs.push_back(ConstantInt::get(Type::getInt64Ty(TheContext), arraySize+1));
-  callocArgs.push_back(ConstantInt::get(Type::getInt64Ty(TheContext), 8));
-  auto *allocInst = Builder.CreateCall(callocFun, callocArgs, "allocPtr");
+  auto elements = getElements();
+  int loopSize = ELEMENTS.size();
+  Value* arrLen = ConstantInt::get(Type::getInt64Ty(TheContext), loopSize);
+
+  //Allocate an int pointer with calloc
+  std::vector<Value *> twoArg;
+  twoArg.push_back(ConstantInt::get(Type::getInt64Ty(TheContext), loopSize+1));
+  twoArg.push_back(ConstantInt::get(Type::getInt64Ty(TheContext), 8));
+  auto *allocInst = Builder.CreateCall(callocFun, twoArg, "allocPtr");
   auto *arrayPtr = Builder.CreatePointerCast(allocInst, Type::getInt64PtrTy(TheContext), "arrayPtr");
-  Builder.CreateStore(arrayLen, arrayPtr)->setAlignment(llvm::Align(8));
 
-  for (int i = 0; i < arraySize; i++) {
-    Value* indexValue = ConstantInt::get(Type::getInt64Ty(TheContext), i);
-    Value* elementValue = barray.at(i)->codegen();
-    Value* elementPtr = Builder.CreateGEP(arrayPtr->getType()->getPointerElementType(), arrayPtr, {indexValue}, "elementPtr");
-    // Store the element in the array
-    Builder.CreateStore(elementValue, elementPtr)->setAlignment(llvm::Align(8));
+  Builder.CreateStore(arrLen, arrayPtr);
+  
+  for (int i = 0; i < loopSize; i++) {
+    Value* counter = ConstantInt::get(Type::getInt64Ty(TheContext), i+1);
+    Value* elementValue = ELEMENTS.at(i)->codegen();
+    Value* gep = Builder.CreateGEP(arrayPtr->getType()->getPointerElementType(), arrayPtr, counter, "elementPtr");
+    Builder.CreateStore(elementValue, gep);
   }
-  // Return the pointer to the allocated and initialized array
-  return arrayPtr;
+
+  return Builder.CreatePtrToInt(arrayPtr, Type::getInt64Ty(TheContext));
 }
 
 
-
+/*
+  Generates LLVM code for obtaining the length of an array.
+  - The function first generates the LLVM Value for the array using the `getArray()->codegen()` method.
+  - It checks if the returned array Value is null, throwing an InternalError if so.
+  - The array's address is then loaded from memory. 
+  - Loads the first element, which is the length of the array.
+  - The length of the array is returned as a 64-bit integer.
+*/
 llvm::Value *ASTArrayLengthExpr::codegen() {
+  // DONE
   LOG_S(1) << "Generating code for " << *this;
 
-  // Get the array
+  // * Get the array.
   lValueGen = true;
-  Value *array = getArray()->codegen();
+  llvm::Value *array = getArray()->codegen();
   lValueGen = false;
 
   if (array == nullptr) {
-    throw InternalError("failed to generate bitcode for the array for the "
+    throw InternalError("failed to generate bitcode for the array of the "
                         "array length expression");
   }
-  // // Load address of array
-  // Value *arrayAddr = Builder.CreateIntToPtr(
-  //     array, Type::getInt64PtrTy(TheContext), "arrayAddr");
-  // // ptr to array
-  // Value *arrayPtr =
-  //     Builder.CreateLoad(Type::getInt64Ty(TheContext), arrayAddr, "arrayPtr");
+  // Load addr of array from its memory home
+  Value *arrayAddr = Builder.CreateIntToPtr(array, Type::getInt64PtrTy(TheContext), "arrayAddr");
 
-  // // cast array ptr to int64*
-  // Value *arrayAddrInt64Ptr = Builder.CreateIntToPtr(
-  //     ArrayPtr, Type::getInt64PtrTy(TheContext), "arrayAddrInt64Ptr");
-
-  // // Load the length of the array
-  // Value *arrayLength = Builder.CreateLoad(Type::getInt64Ty(TheContext),
-  //                                         arrayAddrInt64Ptr, "arrayLength");
-  Value *arrayLength = Builder.CreateLoad(Type::getInt64Ty(TheContext), array, "arrayLength");
+  // Assuming 'array' is a pointer to the start of the array where the first element is the length
+  llvm::Value *arrayLength = Builder.CreateLoad(Type::getInt64Ty(TheContext), arrayAddr, "arrayLength");
 
   return arrayLength;
 }
 
+/*
+  Generates LLVM code for creating an arrayofexpr.
+  - Generates size and check if null, throwing an error if it's null.
+  - Generates size and value if null, throwing an error if it's null.
+  - Allocates memory for the array using 'calloc', which is sized based on the size expression plus one.
+  - The first element of the array is used to store its size.
+  - Loop to intialize each value in array
+  - Return a pointer to the array, cast to a 64-bit integer.
+*/
 llvm::Value *ASTArrayOfExpr::codegen() {
+  // Done
   // Check if we have exactly two elements
   if (ELEMENTS.size() != 2) {
     throw InternalError("Array of expression requires exactly two elements.");
@@ -1314,12 +1348,15 @@ llvm::Value *ASTArrayOfExpr::codegen() {
   Builder.SetInsertPoint(afterLoopBlock);
 
   // The arrayPtr is a pointer to the first element of the array
-  return arrayPtr;
+  return Builder.CreatePtrToInt(arrayPtr, Type::getInt64Ty(TheContext));
 }
 
-/* the following boolean convention is set as: "true" returns 0, "false" returns 1
+/* 
+  Generates LLVM code for creating boolean expression
+  - the following boolean convention is set as: "true" returns 1, "false" returns 0
  */ 
 llvm::Value *ASTBooleanExpr::codegen() {
+  // Done
   LOG_S(1) << "Generating code for " << *this;
   if (getValue()) {
     return oneV;
@@ -1330,10 +1367,16 @@ llvm::Value *ASTBooleanExpr::codegen() {
   }
 }
 
+/*
+Comment Here
+*/
 llvm::Value *ASTForIteratorStmt::codegen() {
   return nullptr;
 }
 
+/*
+Comment Here
+*/
 llvm::Value *ASTForRangeStmt::codegen() {
   LOG_S(1) << "Generating code for " << *this;
 
@@ -1445,7 +1488,15 @@ llvm::Value *ASTForRangeStmt::codegen() {
   return Builder.CreateCall(nop);
 }
 
+/*
+  Generating LLVM code for a negation expression
+  - Generates negation expression using `getArg()->codegen()`.
+  - It checks if the generated Value is null, throwing an InternalError if so.
+  - Create an LLVM negation instruction (`CreateNeg`), which negates the value of the argument.
+  - Return Negation
+*/
 llvm::Value *ASTNegExpr::codegen() {
+  // Done
   LOG_S(1) << "Generating code for " << *this;
   Value* argValue = getArg()->codegen();
   if (argValue == nullptr) {
@@ -1456,7 +1507,15 @@ llvm::Value *ASTNegExpr::codegen() {
   return Builder.CreateNeg(argValue, "negtmp");
 }
 
+/*
+  Generating LLVM code for the not expression
+  - Generates not expression using `getArg()->codegen()`.
+  - It checks if the generated Value is null, throwing an InternalError if so.
+  - Create an LLVM not instruction (`CreateNot`), which executes the logical not.
+  - Return logical not
+*/
 llvm::Value *ASTNotExpr::codegen() {
+  // Done
   LOG_S(1) << "Generating code for " << *this;
   Value* argValue = getArg()->codegen();
   if (argValue == nullptr) {
@@ -1467,7 +1526,19 @@ llvm::Value *ASTNotExpr::codegen() {
   return Builder.CreateNot(argValue, "notmp");
 }
 
+/*
+  Generates LLVM IR code for postfix operations.
+  - Sets the lValueGen flag to true to generate code for an l-value expression.
+  - Generates the LLVM Value for the l-value expression using `getArg()->codegen()` 
+    checks if this Value is null, throwing an InternalError if it is null.
+  - The lValueGen flag is set to false, and the r-value of the expression is generated.
+  - rValue is stored back into the l-value.
+  - Creates LLVM instruction (CreateAdd for '++', CreateSub for '--') to modify the r-value.
+  - UpdateV is stored in the l-value, completing the postfix operation.
+  - Returns the original value of the variable prior to the postfix operation.
+*/
 llvm::Value *ASTPostfixStmt::codegen() {
+  // Done
   LOG_S(1) << "Generating code for " << *this;
 
   // trigger code generation for l-value expressions
@@ -1495,6 +1566,9 @@ llvm::Value *ASTPostfixStmt::codegen() {
   return Builder.CreateStore(UpdateV, lValue);
 }
 
+/*
+Comment Here
+*/
 llvm::Value *ASTTernaryExpr::codegen() {
   LOG_S(1) << "Generating code for " << *this;
 

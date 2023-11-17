@@ -1,0 +1,11 @@
+main() {
+  var a, b, c, d;
+  a = 12;
+  b = -6;
+  if (b != -6) error b;
+  c = -a;
+  if (c != -12) error c;
+  d = -b;
+  if (d != 6) error d;
+  return 0;
+}

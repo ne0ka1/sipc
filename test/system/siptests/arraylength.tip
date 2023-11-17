@@ -1,0 +1,20 @@
+length() {
+    return #[1,2,3];
+}
+
+zeroLength() 
+{
+  return #[];
+}
+
+nestedLength() 
+{
+  return #[[1], [2]];
+}
+
+main() {
+  if (length() != 3) error length();
+  if (zeroLength() != 0) error zeroLength();
+  if ((nestedLength() != 2)) error nestedLength();
+  return 0;
+}
