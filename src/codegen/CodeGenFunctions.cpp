@@ -1133,7 +1133,21 @@ llvm::Value *ASTReturnStmt::codegen() {
   return Builder.CreateRet(argVal);
 } // LCOV_EXCL_LINE
 
+// SIP EXTENSIONS
 
+
+/*
+  Generates the LLVM for accessing an element of an array
+  - Generate Value for the array and the index expression.
+  - Check for null values for the array and the index, throwing an error if any are null.
+  - Convert the array's address to a pointer type for indexing.
+  - Load the length of the array and performing bounds checking on the index to ensure it is within the valid range of the array. 
+      check if the index is negative or greater than or equal to the array length.
+  - If out-of-bounds index, the function branches to an error handling block.
+  - If the index is within bounds, the function calculates the address of the desired array element and either:
+    - Returns a pointer to the array element.
+    - Loads and returns the value of the array element.
+*/
 llvm::Value *ASTArrayAccessExpr::codegen() {
   // Done
   LOG_S(1) << "Generating code for " << *this;
@@ -1204,7 +1218,17 @@ llvm::Value *ASTArrayAccessExpr::codegen() {
 }
 
 
-
+/*
+  Generates LLVM code for creating an array
+  - It retrieves the elements of the array and determines the size of the array.
+  - Allocates memory for the array using 'calloc', with space for the array length plus the elements.
+  - The first element of the allocated space is used to store the length of the array.
+  - Iterates over the array elements, generating code for
+     each element and storing them in the allocated array space.
+  - The array elements start from the second position in the allocated space (index 1), 
+      as the first position (index 0) is reserved for the array length.
+  - After storing all elements, it returns the pointer to the allocated array, cast to a 64-bit integer.
+*/
 llvm::Value *ASTArrayExpr::codegen() {
   // DONE
   LOG_S(1) << "Generating code for " << *this;
@@ -1233,7 +1257,14 @@ llvm::Value *ASTArrayExpr::codegen() {
 }
 
 
-
+/*
+  Generates LLVM code for obtaining the length of an array.
+  - The function first generates the LLVM Value for the array using the `getArray()->codegen()` method.
+  - It checks if the returned array Value is null, throwing an InternalError if so.
+  - The array's address is then loaded from memory. 
+  - Loads the first element, which is the length of the array.
+  - The length of the array is returned as a 64-bit integer.
+*/
 llvm::Value *ASTArrayLengthExpr::codegen() {
   // DONE
   LOG_S(1) << "Generating code for " << *this;
@@ -1256,6 +1287,15 @@ llvm::Value *ASTArrayLengthExpr::codegen() {
   return arrayLength;
 }
 
+/*
+  Generates LLVM code for creating an arrayofexpr.
+  - Generates size and check if null, throwing an error if it's null.
+  - Generates size and value if null, throwing an error if it's null.
+  - Allocates memory for the array using 'calloc', which is sized based on the size expression plus one.
+  - The first element of the array is used to store its size.
+  - Loop to intialize each value in array
+  - Return a pointer to the array, cast to a 64-bit integer.
+*/
 llvm::Value *ASTArrayOfExpr::codegen() {
   // Done
   // Check if we have exactly two elements
@@ -1311,9 +1351,12 @@ llvm::Value *ASTArrayOfExpr::codegen() {
   return Builder.CreatePtrToInt(arrayPtr, Type::getInt64Ty(TheContext));
 }
 
-/* the following boolean convention is set as: "true" returns 0, "false" returns 1
+/* 
+  Generates LLVM code for creating boolean expression
+  - the following boolean convention is set as: "true" returns 1, "false" returns 0
  */ 
 llvm::Value *ASTBooleanExpr::codegen() {
+  // Done
   LOG_S(1) << "Generating code for " << *this;
   if (getValue()) {
     return oneV;
@@ -1324,10 +1367,16 @@ llvm::Value *ASTBooleanExpr::codegen() {
   }
 }
 
+/*
+Comment Here
+*/
 llvm::Value *ASTForIteratorStmt::codegen() {
   return nullptr;
 }
 
+/*
+Comment Here
+*/
 llvm::Value *ASTForRangeStmt::codegen() {
   LOG_S(1) << "Generating code for " << *this;
 
@@ -1439,7 +1488,15 @@ llvm::Value *ASTForRangeStmt::codegen() {
   return Builder.CreateCall(nop);
 }
 
+/*
+  Generating LLVM code for a negation expression
+  - Generates negation expression using `getArg()->codegen()`.
+  - It checks if the generated Value is null, throwing an InternalError if so.
+  - Create an LLVM negation instruction (`CreateNeg`), which negates the value of the argument.
+  - Return Negation
+*/
 llvm::Value *ASTNegExpr::codegen() {
+  // Done
   LOG_S(1) << "Generating code for " << *this;
   Value* argValue = getArg()->codegen();
   if (argValue == nullptr) {
@@ -1450,7 +1507,15 @@ llvm::Value *ASTNegExpr::codegen() {
   return Builder.CreateNeg(argValue, "negtmp");
 }
 
+/*
+  Generating LLVM code for the not expression
+  - Generates not expression using `getArg()->codegen()`.
+  - It checks if the generated Value is null, throwing an InternalError if so.
+  - Create an LLVM not instruction (`CreateNot`), which executes the logical not.
+  - Return logical not
+*/
 llvm::Value *ASTNotExpr::codegen() {
+  // Done
   LOG_S(1) << "Generating code for " << *this;
   Value* argValue = getArg()->codegen();
   if (argValue == nullptr) {
@@ -1461,7 +1526,19 @@ llvm::Value *ASTNotExpr::codegen() {
   return Builder.CreateNot(argValue, "notmp");
 }
 
+/*
+  Generates LLVM IR code for postfix operations.
+  - Sets the lValueGen flag to true to generate code for an l-value expression.
+  - Generates the LLVM Value for the l-value expression using `getArg()->codegen()` 
+    checks if this Value is null, throwing an InternalError if it is null.
+  - The lValueGen flag is set to false, and the r-value of the expression is generated.
+  - rValue is stored back into the l-value.
+  - Creates LLVM instruction (CreateAdd for '++', CreateSub for '--') to modify the r-value.
+  - UpdateV is stored in the l-value, completing the postfix operation.
+  - Returns the original value of the variable prior to the postfix operation.
+*/
 llvm::Value *ASTPostfixStmt::codegen() {
+  // Done
   LOG_S(1) << "Generating code for " << *this;
 
   // trigger code generation for l-value expressions
@@ -1491,6 +1568,9 @@ llvm::Value *ASTPostfixStmt::codegen() {
   return Builder.CreateStore(UpdateV, lValue);
 }
 
+/*
+Comment Here
+*/
 llvm::Value *ASTTernaryExpr::codegen() {
   LOG_S(1) << "Generating code for " << *this;
 
