@@ -1,0 +1,56 @@
+foo() 
+{
+  var e, a, s;
+  a = [1, 2, 3];
+  for (e : a)
+    {
+      s = (s + e);
+    }
+  return s;
+}
+
+bar() 
+{
+  var a, i, j, s;
+  a = [[1, 2], [5, 2], [3, 2]];
+  for (i : a)
+    {
+      for (j : i)
+        {
+          s = (s + j);
+        }
+    }
+  return s;
+}
+
+main() 
+{
+  if ((foo() != 6)) 
+    error foo();
+  if ((bar() != 15)) 
+    error bar();
+  return 0;
+}
+
+Functions : {
+  bar : () -> int,
+  foo : () -> int,
+  main : () -> int
+}
+
+Locals for function bar : {
+  a : [] [] int,
+  i : [] int,
+  j : int,
+  s : int
+}
+
+Locals for function foo : {
+  a : [] int,
+  e : int,
+  s : int
+}
+
+Locals for function main : {
+
+}

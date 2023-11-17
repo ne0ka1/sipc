@@ -1368,10 +1368,97 @@ llvm::Value *ASTBooleanExpr::codegen() {
 }
 
 /*
-Comment Here
-*/
+ * The code generated for an forRangeStmt looks like this:
+ *       <INIT> initializes the array
+ *          v
+ *       <HEADER>		
+ *          /  ^  \ out of range
+ *         v  /    \
+ *      <BODY>     /
+ *                /
+ *               v
+ *              nop        	this is called the "exit" block
+ */
 llvm::Value *ASTForIteratorStmt::codegen() {
-  return nullptr;
+  LOG_S(1) << "Generating code for " << *this;
+
+  llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+
+  labelNum++; // create shared labels for these BBs
+
+  BasicBlock *InitBB = BasicBlock::Create(
+      TheContext, "init" + std::to_string(labelNum), TheFunction);
+  BasicBlock *HeaderBB = BasicBlock::Create(
+      TheContext, "header" + std::to_string(labelNum));
+  BasicBlock *BodyBB =
+      BasicBlock::Create(TheContext, "body" + std::to_string(labelNum));
+  BasicBlock *ExitBB =
+      BasicBlock::Create(TheContext, "exit" + std::to_string(labelNum));
+
+  // Add an explicit branch from the current BB to the Init block
+  Builder.CreateBr(InitBB);
+
+  // Emit loop init
+  Builder.SetInsertPoint(InitBB);
+  // trigger code generation for Element expression l-value
+  lValueGen = true;
+  Value *ElemV = getElement()->codegen();
+  lValueGen = false;
+  if (ElemV == nullptr) {
+    throw InternalError(                                 // LCOV_EXCL_LINE
+        "failed to generate bitcode for the loop element"); // LCOV_EXCL_LINE
+  }
+
+  // trigger code generation for Array expression
+  Value *ArrayV = getArray()->codegen();
+  if (ArrayV == nullptr) {
+    throw InternalError(                                 // LCOV_EXCL_LINE
+        "failed to generate bitcode for the loop array"); // LCOV_EXCL_LINE
+  }
+
+  Value *ArrayAddr = Builder.CreateIntToPtr(ArrayV, Type::getInt64PtrTy(TheContext), "ArrayAddr");
+  Value *ArrayPtr = Builder.CreateIntToPtr(ArrayAddr, Type::getInt64PtrTy(TheContext), "ArrayPtr");
+
+  // Array Length
+  Value *ArrayLength = Builder.CreateLoad(Type::getInt64Ty(TheContext), ArrayAddr, "ArrayLength"); 
+
+  // Index starts from 1 for implementing reason
+  Value *Index = ConstantInt::get(Type::getInt64Ty(TheContext), 1);
+
+  Builder.CreateBr(HeaderBB);
+
+  // Emit loop header
+  TheFunction->getBasicBlockList().push_back(HeaderBB);
+  Builder.SetInsertPoint(HeaderBB);
+
+  Value *CondV = Builder.CreateICmpSLE(Index, ArrayLength, "inrange");
+
+  Builder.CreateCondBr(CondV, BodyBB, ExitBB);
+
+  // Emit loop body
+  TheFunction->getBasicBlockList().push_back(BodyBB);
+  Builder.SetInsertPoint(BodyBB);
+    
+  // Assign element of array
+  Value *ElemPtr = Builder.CreateGEP(ArrayPtr->getType()->getPointerElementType(), ArrayPtr, Index, "ElemPtr");
+  Builder.CreateLoad(ElemPtr->getType()->getPointerElementType(), ElemV, "LoadElement");
+        
+  // Update index
+  Builder.CreateAdd(Index, oneV, "addtmp");
+
+  // Emit loop body
+  Value *BodyV = getBody()->codegen();
+  if (BodyV == nullptr) {
+    throw InternalError(                                 // LCOV_EXCL_LINE
+        "failed to generate bitcode for the loop body"); // LCOV_EXCL_LINE
+  }
+
+  Builder.CreateBr(HeaderBB);
+
+  // Emit loop exit block.
+  TheFunction->getBasicBlockList().push_back(ExitBB);
+  Builder.SetInsertPoint(ExitBB);
+  return Builder.CreateCall(nop);
 }
 
 /*

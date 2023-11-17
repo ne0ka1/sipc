@@ -1,13 +1,9 @@
-foo(){
-  var x;
-  x = 0;
-  x++;
-  x++;
-  x--;
-  return x;
-}
-
-main(){
-  if (foo() != 1) error foo();
-  return 0;
+main() {
+    var x;
+    x = 0;
+    x++;
+    if(x != 1) error x;
+    x--;
+    if(x != 0) error x;
+    return 0;
 }
