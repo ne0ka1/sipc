@@ -1619,8 +1619,7 @@ llvm::Value *ASTNotExpr::codegen() {
     throw InternalError("NULL operand");
   }
 
-  // Create an LLVM not instruction
-  return Builder.CreateNot(argValue, "notmp");
+  return Builder.CreateXor(argValue, oneV, "notmp");
 }
 
 /*
