@@ -11,13 +11,28 @@
 #include "llvm/Transforms/Scalar/SimplifyCFG.h"
 #include "llvm/Transforms/Utils/Mem2Reg.h"
 
-// Extra Passes
-#include "llvm/Transforms/Scalar/SCCP.h"
-#include "llvm/Transforms/Scalar/SimpleLoopUnswitch.h"
-#include "llvm/Transforms/Scalar/TailRecursionElimination.h" //Tail Call Elimination
+// P5 passes
+#include "llvm/Transforms/Scalar/LICM.h"
+#include "llvm/Transforms/Scalar/LoopDeletion.h"
 
+#include "llvm/Transforms/Scalar/DCE.h"
+#include "llvm/Transforms/Scalar/LoopUnroll.h"
+#include "llvm/Transforms/IPO/Inline.h"
+#include "llvm/Transforms/Scalar/ConstantPropagation.h"
+#include "llvm/Transforms/Scalar/TailRecursionElimination.h"
 // For logging
 #include "loguru.hpp"
+
+namespace { // Anonymous namespace for local function
+	    
+bool contains(Optimization o, llvm::cl::list<Optimization> &l) {
+  for (unsigned i = 0; i != l.size(); ++i) {
+    if (o == l[i]) return true;
+  }
+  return false;
+}
+
+}
 
 //  NOTE:
 //  We must use llvm Adaptors to run per-loop passes in the function pass
@@ -29,7 +44,8 @@
 //  eg: To run a loop pass on a module ->
 //  ModulePassManager.add(functionAdaptor(LoopAdaptor(llvm::LoopPass())))
 
-void Optimizer::optimize(llvm::Module *theModule) {
+void Optimizer::optimize(llvm::Module *theModule, 
+		llvm::cl::list<Optimization> &enabledOpts) {
   LOG_S(1) << "Optimizing program " << theModule->getName().str();
 
   // New pass builder
@@ -57,6 +73,8 @@ void Optimizer::optimize(llvm::Module *theModule) {
 
   llvm::ModulePassManager modulePassManager;
   llvm::FunctionPassManager functionPassManager;
+  llvm::LoopPassManager loopPassManagerWithMSSA;
+  llvm::LoopPassManager loopPassManager;
 
   // Adding passes to the pipeline
 
@@ -69,11 +87,67 @@ void Optimizer::optimize(llvm::Module *theModule) {
   // Simplify the control flow graph (deleting unreachable blocks, etc).
   functionPassManager.addPass(llvm::SimplifyCFGPass());
 
+  if (contains(licm, enabledOpts)) {
+    // Add loop invariant code motion 
+    loopPassManagerWithMSSA.addPass(llvm::LICMPass()); 
+  }
+
+  if (contains(del, enabledOpts)) {
+    // Add loop deletion pass
+    loopPassManager.addPass(llvm::LoopDeletionPass()); 
+  }  
+  /*
+    It transforms loop iterations to use vector instructions,
+    which can process multiple data elements in parallel,
+    thereby potentially improving performance on modern hardware.
+    Use llvm::LoopVectorizePass().
+  */ 
+  if (contains(loop_vectorize, enabledOpts)) {
+    loopPassManagerWithMSSA.addPass(llvm::LoopVectorizePass());
+  }
+  /*
+    This optimization reduces the computational strength
+    of the operations inside loops, for example, 
+    replacing expensive operations like multiplication with cheaper ones like addition.
+    Use llvm::LoopStrengthReducePass().
+  */
+  if (contains(loop_strength_reduce, enabledOpts)) {
+    loopPassManagerWithMSSA.addPass(llvm::LoopStrengthReducePass());
+  }
+  /*
+    Enhances loop efficiency by unrolling loop iterations.
+    Use llvm::LoopUnrollPass(), configuring it with desired parameters for unrolling.
+  */
+  // if (contains(loop_unroll, enabledOpts)) {
+  //     loopPassManagerWithMSSA.addPass(llvm::LoopUnrollPass(/* configure as needed */));
+  // }
+  /*
+    Replaces a function call with the actual function body,
+    which can improve performance by eliminating the overhead of the call.
+    Use llvm::InlinePass(), possibly with some configuration for controlling inlining aggressiveness.
+  */
+  // if (contains(inline_functions, enabledOpts)) {
+  //   functionPassManager.addPass(llvm::InlinePass(/* configure as needed */));
+  // }
+  /*
+    Substitutes the values of known constants in expressions.
+  */
+  if (contains(const_prop, enabledOpts)) {
+    functionPassManager.addPass(llvm::ConstantPropagationPass());
+  }
+
+  // Add loop pass managers with and w/out MemorySSA
+  functionPassManager.addPass(
+      createFunctionToLoopPassAdaptor(std::move(loopPassManagerWithMSSA),true));
+
+  functionPassManager.addPass(
+      createFunctionToLoopPassAdaptor(std::move(loopPassManager)));
+
   // Passing the function pass manager to the modulePassManager using a function
   // adaptor, then passing theModule to the ModulePassManager along with
   // ModuleAnalysisManager.
 
   modulePassManager.addPass(
-      createModuleToFunctionPassAdaptor(std::move(functionPassManager)));
+      createModuleToFunctionPassAdaptor(std::move(functionPassManager), true));
   modulePassManager.run(*theModule, moduleAnalysisManager);
 }
