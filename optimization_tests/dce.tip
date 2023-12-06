@@ -1,0 +1,22 @@
+// Test for Dead Code Elimination (DCE)
+main() {
+  var a, b, c, d, e, f, g, h, i, j, k;
+  a = 10;
+  b = a * 2; // Used computation
+  c = a + b; // Unused computation
+  d = b - 3; // Unused computation
+  e = 50;    // Unused variable
+  f = d + e; // Unused computation
+  g = b * 2; // Used computation
+  h = g + 1; // Used computation
+  i = h * a; // Used computation
+  j = f - d; // Unused computation
+  k = i + h; // Final result uses only 'i' and 'h'
+
+  // Complex condition with unused parts
+  if (c > d and e < f or g == h) {
+    k = k + 1; // This line only executes if the condition is true, but the condition uses unused variables
+  }
+
+  return k;
+}
