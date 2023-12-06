@@ -15,6 +15,14 @@
 #include "llvm/Transforms/Scalar/LICM.h"
 #include "llvm/Transforms/Scalar/LoopDeletion.h"
 
+// New
+#include "llvm/Passes/OptimizationLevel.h"
+#include "llvm/Transforms/Scalar/DCE.h"
+#include "llvm/Transforms/Scalar/LoopUnrollPass.h"
+#include "llvm/Transforms/Vectorize/SLPVectorizer.h"
+#include "llvm/Transforms/Scalar/TailRecursionElimination.h"
+#include "llvm/Transforms/Scalar/EarlyCSE.h"
+#include "llvm/Transforms/Scalar/CorrelatedValuePropagation.h"
 // For logging
 #include "loguru.hpp"
 
@@ -90,7 +98,37 @@ void Optimizer::optimize(llvm::Module *theModule,
   if (contains(del, enabledOpts)) {
     // Add loop deletion pass
     loopPassManager.addPass(llvm::LoopDeletionPass()); 
-  }   
+  }  
+
+  if (contains(dce, enabledOpts)) {
+    // Add loop deletion pass
+    functionPassManager.addPass(llvm::DCEPass()); 
+  }  
+
+  if (contains(lup, enabledOpts)) {
+    // Add loop deletion pass
+    functionPassManager.addPass(llvm::LoopUnrollPass()); 
+  } 
+
+  if (contains(slp, enabledOpts)) {
+    // Add loop deletion pass
+    functionPassManager.addPass(llvm::SLPVectorizerPass()); 
+  } 
+
+  if (contains(tre, enabledOpts)) {
+    // Add loop deletion pass
+    functionPassManager.addPass(llvm::TailCallElimPass()); 
+  } 
+
+  if (contains(ecse, enabledOpts)) {
+    // Add loop deletion pass
+    functionPassManager.addPass(llvm::EarlyCSEPass()); 
+  } 
+
+   if (contains(cpr, enabledOpts)) {
+    // Add loop deletion pass
+    functionPassManager.addPass(llvm::CorrelatedValuePropagationPass()); 
+  } 
 
   // Add loop pass managers with and w/out MemorySSA
   functionPassManager.addPass(
