@@ -100,35 +100,42 @@ void Optimizer::optimize(llvm::Module *theModule,
     loopPassManager.addPass(llvm::LoopDeletionPass()); 
   }  
 
+  // Dead Code Elimination (DCE): Removes code that does not affect the program's observable behavior.
   if (contains(dce, enabledOpts)) {
-    // Add loop deletion pass
-    functionPassManager.addPass(llvm::DCEPass()); 
+      functionPassManager.addPass(llvm::DCEPass()); 
   }  
 
-  if (contains(lup, enabledOpts)) {
-    // Add loop deletion pass
-    functionPassManager.addPass(llvm::LoopUnrollPass()); 
+  // Loop Unrolling: Expands the loop body multiple times,
+  // reducing the loop overhead and increasing parallelism.
+  if (contains(lu, enabledOpts)) {
+      functionPassManager.addPass(llvm::LoopUnrollPass()); 
   } 
 
-  if (contains(slp, enabledOpts)) {
-    // Add loop deletion pass
-    functionPassManager.addPass(llvm::SLPVectorizerPass()); 
+  // Superword Level Parallelism Vectorizer (SLPVectorizer):
+  // Combines several independent scalar operations into a single
+  // vector operation to improve execution efficiency.
+  if (contains(slpv, enabledOpts)) {
+      functionPassManager.addPass(llvm::SLPVectorizerPass()); 
   } 
 
-  if (contains(tre, enabledOpts)) {
-    // Add loop deletion pass
-    functionPassManager.addPass(llvm::TailCallElimPass()); 
+  // Tail Call Elimination: Optimizes tail-recursive calls
+  // to be executed as a loop, reducing function call overhead and stack usage.
+  if (contains(tce, enabledOpts)) {
+      functionPassManager.addPass(llvm::TailCallElimPass()); 
   } 
 
+  // Early Common Subexpression Elimination (EarlyCSE): 
+  // Identifies and eliminates redundant computations performed multiple times within the same block.
   if (contains(ecse, enabledOpts)) {
-    // Add loop deletion pass
-    functionPassManager.addPass(llvm::EarlyCSEPass()); 
+      functionPassManager.addPass(llvm::EarlyCSEPass()); 
   } 
 
-   if (contains(cpr, enabledOpts)) {
-    // Add loop deletion pass
-    functionPassManager.addPass(llvm::CorrelatedValuePropagationPass()); 
-  } 
+  // Correlated Value Propagation: Propagates information about
+  // values in conditional branches to optimize the branches and other instructions.
+  if (contains(cvp, enabledOpts)) {
+      functionPassManager.addPass(llvm::CorrelatedValuePropagationPass()); 
+  }
+
 
   // Add loop pass managers with and w/out MemorySSA
   functionPassManager.addPass(
