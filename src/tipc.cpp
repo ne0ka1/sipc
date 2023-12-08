@@ -56,14 +56,15 @@ static cl::opt<std::string> outputfile("o", cl::value_desc("outputfile"),
 static cl::list<Optimization> OptimizationList(
 		cl::desc("Available Optimizations:"),
 		cl::values(
-			clEnumVal(licm, "Loop Invariant Code Motion"),
-			clEnumVal(del, "Loop Deletion"),
       clEnumVal(dce, "Dead Code Elimination"),
       clEnumVal(lu, "Loop Unrolling"),
-      clEnumVal(slpv, "Superword Level Parallelism Vectorizer"),
-      clEnumVal(tce, "Tail Call Elimination"),
-      clEnumVal(ecse, "Early Common Subexpression Elimination"),
-      clEnumVal(cvp, "Correlated Value Propagation")),
+      clEnumVal(mfp, "Merge Function Pass"),
+      // clEnumVal(slpv, "Superword Level Parallelism Vectorizer")
+      // clEnumVal(tce, "Tail Call Elimination")
+      clEnumVal(ilp, "Inline Optimization"),
+      clEnumVal(ecse, "Early Common Subexpression Elimination")
+      // clEnumVal(cvp, "Correlated Value Propagation")
+      ),
 		cl::cat(TIPcat));
 
 /*! \brief tipc driver.

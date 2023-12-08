@@ -1,0 +1,19 @@
+// The function `multiplyByTwo` is a simple function that is expected to be inlined.
+// When the inlining optimization is applied, calls to `multiplyByTwo` in the loop 
+// should be replaced with the body of `multiplyByTwo`, reducing function call overhead.
+
+multiplyByTwo(x) {
+    return x * 2;
+}
+
+main() {
+    var i, result;
+    result = [10 of 0];
+
+    for (i : 0 .. 10) {
+        result[i] = multiplyByTwo(i); // Expected to be inlined
+        output result[i];
+    }
+
+    return 0;
+}

@@ -1,0 +1,17 @@
+// Test for Early Common Subexpression Elimination with a While Loop
+main(n) {
+  var a, b, c, i, result;
+  i = 0;
+  result = 0;
+
+  while (i < n) {
+    a = i * 5;  // Compute i*5
+    b = a + 10; // Use the result of i*5
+    c = i * 5;  // Common subexpression, can be eliminated and replaced with 'a'
+    result = result + b + c;
+
+    i = i + 1;
+  }
+
+  return result;
+}

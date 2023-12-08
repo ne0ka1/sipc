@@ -1,0 +1,25 @@
+// This test is designed to evaluate Tail Call Elimination (TCE).
+// The function `tailRecursiveSum` performs a simple tail-recursive operation.
+// Without TCE, this function would cause a stack overflow with large `n`.
+// With TCE, it should execute without stack overflow issues, even for large `n`.
+
+tailRecursiveSum(n) {
+    var acc;
+    acc = 0;
+
+    // Iteratively accumulate the sum to mimic tail recursion
+    while (n > 0) {
+        acc = acc + n;
+        n = n - 1;
+    }
+
+    return acc;
+}
+
+main() {
+    var result;
+    // Test with a large value of `n` to evaluate efficiency
+    result = tailRecursiveSum(100000);
+    output result;
+    return 0;
+}

@@ -16,10 +16,14 @@
 #include "llvm/Transforms/Scalar/LoopDeletion.h"
 
 // New
-#include "llvm/Passes/OptimizationLevel.h"
-#include "llvm/Transforms/Scalar/DCE.h"
 #include "llvm/Transforms/Scalar/LoopUnrollPass.h"
+#include "llvm/Transforms/IPO/MergeFunctions.h"
+#include "llvm/Transforms/Scalar/DCE.h"
 #include "llvm/Transforms/Vectorize/SLPVectorizer.h"
+#include "llvm/Transforms/IPO/Inliner.h"
+
+
+#include "llvm/Passes/OptimizationLevel.h"
 #include "llvm/Transforms/Scalar/TailRecursionElimination.h"
 #include "llvm/Transforms/Scalar/EarlyCSE.h"
 #include "llvm/Transforms/Scalar/CorrelatedValuePropagation.h"
@@ -89,60 +93,57 @@ void Optimizer::optimize(llvm::Module *theModule,
   functionPassManager.addPass(llvm::GVNPass());
   // Simplify the control flow graph (deleting unreachable blocks, etc).
   functionPassManager.addPass(llvm::SimplifyCFGPass());
-
-  if (contains(licm, enabledOpts)) {
-    // Add loop invariant code motion 
-    loopPassManagerWithMSSA.addPass(llvm::LICMPass()); 
-  }
-
-  if (contains(del, enabledOpts)) {
-    // Add loop deletion pass
-    loopPassManager.addPass(llvm::LoopDeletionPass()); 
-  }  
-
+  
   // Dead Code Elimination (DCE): Removes code that does not affect the program's observable behavior.
   if (contains(dce, enabledOpts)) {
-      functionPassManager.addPass(llvm::DCEPass()); 
+    functionPassManager.addPass(llvm::DCEPass()); 
   }  
-
   // Loop Unrolling: Expands the loop body multiple times,
   // reducing the loop overhead and increasing parallelism.
   if (contains(lu, enabledOpts)) {
-      functionPassManager.addPass(llvm::LoopUnrollPass()); 
+    functionPassManager.addPass(llvm::LoopUnrollPass()); 
+  } 
+  // Merge function Pass
+  if (contains(mfp, enabledOpts)){
+    modulePassManager.addPass(llvm::MergeFunctionsPass());
+  }
+
+  // Inline pass
+  if (contains(ilp, enabledOpts)){
+    modulePassManager.addPass(llvm::ModuleInlinerPass());
+  }
+
+  // Early Common Subexpression Elimination (EarlyCSE): 
+  // Identifies and eliminates redundant computations performed multiple times within the same block.
+  if (contains(ecse, enabledOpts)) {
+    functionPassManager.addPass(llvm::EarlyCSEPass()); 
   } 
 
   // Superword Level Parallelism Vectorizer (SLPVectorizer):
   // Combines several independent scalar operations into a single
   // vector operation to improve execution efficiency.
-  if (contains(slpv, enabledOpts)) {
-      functionPassManager.addPass(llvm::SLPVectorizerPass()); 
-  } 
+  // if (contains(slpv, enabledOpts)) {
+  //   functionPassManager.addPass(llvm::SLPVectorizerPass()); 
+  // } 
 
-  // Tail Call Elimination: Optimizes tail-recursive calls
-  // to be executed as a loop, reducing function call overhead and stack usage.
-  if (contains(tce, enabledOpts)) {
-      functionPassManager.addPass(llvm::TailCallElimPass()); 
-  } 
-
-  // Early Common Subexpression Elimination (EarlyCSE): 
-  // Identifies and eliminates redundant computations performed multiple times within the same block.
-  if (contains(ecse, enabledOpts)) {
-      functionPassManager.addPass(llvm::EarlyCSEPass()); 
-  } 
-
-  // Correlated Value Propagation: Propagates information about
-  // values in conditional branches to optimize the branches and other instructions.
-  if (contains(cvp, enabledOpts)) {
-      functionPassManager.addPass(llvm::CorrelatedValuePropagationPass()); 
-  }
-
+  // // Tail Call Elimination: Optimizes tail-recursive calls
+  // // to be executed as a loop, reducing function call overhead and stack usage.
+  // if (contains(tce, enabledOpts)) {
+  //   functionPassManager.addPass(llvm::TailCallElimPass()); 
+  // } 
+  
+  // // Correlated Value Propagation: Propagates information about
+  // // values in conditional branches to optimize the branches and other instructions.
+  // if (contains(cvp, enabledOpts)) {
+  //   functionPassManager.addPass(llvm::CorrelatedValuePropagationPass()); 
+  // }
 
   // Add loop pass managers with and w/out MemorySSA
-  functionPassManager.addPass(
-      createFunctionToLoopPassAdaptor(std::move(loopPassManagerWithMSSA),true));
+  // functionPassManager.addPass(
+  //     createFunctionToLoopPassAdaptor(std::move(loopPassManagerWithMSSA),true));
 
-  functionPassManager.addPass(
-      createFunctionToLoopPassAdaptor(std::move(loopPassManager)));
+  // functionPassManager.addPass(
+  //     createFunctionToLoopPassAdaptor(std::move(loopPassManager)));
 
   // Passing the function pass manager to the modulePassManager using a function
   // adaptor, then passing theModule to the ModulePassManager along with

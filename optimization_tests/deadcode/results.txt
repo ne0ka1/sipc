@@ -1,0 +1,14 @@
+wjl4jj@portal11:~/sipc-lewis_zhang$ ./bin/build.sh --dce --asm optimization_tests/deadcode/dce.tip
+wjl4jj@portal11:~/sipc-lewis_zhang$ time ./dce 2
+Program output: 2
+
+real    0m0.013s
+user    0m0.007s
+sys     0m0.007s
+wjl4jj@portal11:~/sipc-lewis_zhang$ ./bin/build.sh --do --asm optimization_tests/deadcode/dce.tip
+wjl4jj@portal11:~/sipc-lewis_zhang$ time ./dce 2
+Program output: 2
+
+real    0m0.013s
+user    0m0.005s
+sys     0m0.008s

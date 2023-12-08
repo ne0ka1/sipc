@@ -1,0 +1,26 @@
+foo(n) {
+    var x;
+    if (n == 1) {
+        x = n;
+    }else {
+        x = -n;
+    }
+    return x;
+}
+
+bar(n) {
+    var x;
+    if (n == 1) {
+        x = n;
+    }else {
+        x = -n;
+    }
+    return x;
+}
+
+main() {
+    var f, b;
+    f = foo(input);
+    b = bar(input);
+    return 0;
+}

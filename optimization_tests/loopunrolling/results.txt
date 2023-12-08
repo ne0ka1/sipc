@@ -1,0 +1,34 @@
+wjl4jj@portal11:~/sipc-lewis_zhang$ ./bin/build.sh --lu --asm optimization_tests/loopunrolling/lu.tip
+wjl4jj@portal11:~/sipc-lewis_zhang$ time ./lu 
+Program output: 0
+Program output: 1
+Program output: 2
+Program output: 3
+Program output: 4
+Program output: 5
+Program output: 6
+Program output: 7
+Program output: 8
+Program output: 9
+Program output: 0
+
+real    0m0.011s
+user    0m0.002s
+sys     0m0.009s
+wjl4jj@portal11:~/sipc-lewis_zhang$ ./bin/build.sh --do --asm optimization_tests/loopunrolling/lu.tip
+wjl4jj@portal11:~/sipc-lewis_zhang$ time ./lu 
+Program output: 0
+Program output: 1
+Program output: 2
+Program output: 3
+Program output: 4
+Program output: 5
+Program output: 6
+Program output: 7
+Program output: 8
+Program output: 9
+Program output: 0
+
+real    0m0.013s
+user    0m0.005s
+sys     0m0.008s

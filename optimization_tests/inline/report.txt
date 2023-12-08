@@ -1,0 +1,14 @@
+wjl4jj@portal11:~/sipc-lewis_zhang$ ./bin/build.sh --do --asm optimization_tests/inline/ilp.tip 
+wjl4jj@portal11:~/sipc-lewis_zhang$ time ./ilp
+Program output: 0
+
+real    0m0.007s
+user    0m0.007s
+sys     0m0.000s
+wjl4jj@portal11:~/sipc-lewis_zhang$ ./bin/build.sh --ilp --asm optimization_tests/inline/ilp.tip 
+wjl4jj@portal11:~/sipc-lewis_zhang$ time ./ilp
+Program output: 0
+
+real    0m0.008s
+user    0m0.003s
+sys     0m0.003s
