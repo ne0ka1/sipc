@@ -13,6 +13,7 @@ a.out
 build
 docs
 tipg4/.antlr
+
 # LLVM
 *.bc
 *.ll

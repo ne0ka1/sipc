@@ -3,11 +3,11 @@
 ## Boolean types and operators
 We added keywords "true", "false", "and", "or", and "not".
 We then added boolean expressions -- constant boolean values and boolean operators, and made sure they are at the right place according to the operator precedence.
-Here, an alternative design is one expression rule like "expr op=(ADD | OR) expr" instead of two rules "expr AND expr" and "expr OR expr".
+Here, an alternative design is one expression rule like "expr op=(AND | OR) expr" instead of two rules "expr AND expr" and "expr OR expr".
 However, since "and" and "or" have different precedence levels, we chose to write separate rules.
 
 Regarding test, we tested those new expressions and the precedence of boolean operators.
-Specifically, we made sure "not" is lower in precedence than field select but higher than pointer dereference; "and" is lower than equality and "or" is lower than "and".
+Specifically, we made sure "not" is lower in precedence than field select but higher than pointer dereferencing; "and" is lower than equality and "or" is lower than "and".
 We achieved this by checking the parse tree.
 
 ## Array
@@ -18,11 +18,14 @@ We created three expressions for arrays: arrayAccess, lenOfArray, and arrayExpr.
 
 Since all three cases accept expressions and are expressions themselves, all 3 of them allow array nesting.
 
-For tests, we first created parsing tests. We checked if we tested all three methods of array initialization and list nesting. We also compared the precedence of items like arrayAccess to the precedence of field select since arrayAccess precedence should be higher.  
+For tests, we first created parsing tests. We checked if we tested all three methods of array initialization and list nesting. We also compared the precedence of items like arrayAccess to the precedence of field select since arrayAccess precedence should be higher.
+
 ## Arithmetic operators extension
 We added the modulo and negation operators. We created an additional lexical element for modulo, while for negation, we reused the SUB lexical element. We added our modulus expression to our multiplicativeExpr (expr op=(MUL | DIV | MOD) expr) since multiplication, division, and modulus all have the same precedence. For negation, we created another expression called negExpr. Both are handled as prefix unary expressions; however, negExpr looks for an expr value (SUB expr) specifically as opposed to a NUMBER (SUB NUMBER). For tests, we tested parsability to see where our operators would pass and wouldn't. We also wrote tests for the negation of expressions.
+
 ## Relational operators extension
-We added keywords ">=", "<", and "<=." First, we added the new comparator keywords to the lexicon; then, we added them to the relationalExpr by separating them with or statements (expr op=(GE | GT | LE | LT) expr) since they all have the same precedence level. For tests, we created parsability tests and a parse tree test to ensure relational expressions have left-to-right associativity.
+We added keywords ">=", "<", and "<=." First, we added the new comparator keywords to the lexicon; then, we added them to the relationalExpr by separating them with or statements `(expr op=(GE | GT | LE | LT) expr)` since they all have the same precedence level. For tests, we created parsability tests and a parse tree test to ensure relational expressions have left-to-right associativity.
+
 ## Ternary conditional expression
 We added one expression rule specifying the ternary conditional grammar.
 We tried to write something like this:
